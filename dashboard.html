@@ -2,341 +2,760 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leo Assistant - Панель ученика</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Leo Assistant - Панель ученика 7Б</title>
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/animations.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Фирменный дизайн для панели */
         :root {
-            --primary-rgb: 59, 130, 246;
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --secondary: #8b5cf6;
+            --accent: #06b6d4;
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
+            --gradient-main: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            --gradient-success: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+            --glass-bg: rgba(30, 41, 59, 0.85);
+            --glass-border: rgba(59, 130, 246, 0.2);
+            --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.3);
+            --glow: 0 0 30px rgba(59, 130, 246, 0.3);
         }
         
-        .priority-high { color: var(--danger); }
-        .priority-medium { color: var(--warning); }
-        .priority-low { color: var(--success); }
-        
-        .task-done { opacity: 0.6; text-decoration: line-through; }
-        
-        /* Стили для навигации */
-        .system-navigation {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            z-index: 1000;
-            display: flex;
-            gap: 10px;
-            background: var(--card-bg);
-            padding: 10px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        /* Адаптивные размеры */
+        .dashboard {
+            --sidebar-width: 280px;
+            --header-height: 80px;
         }
         
-        .nav-btn {
-            padding: 8px 16px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--background);
-            color: var(--text);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            transition: all 0.2s;
+        @media (max-width: 1024px) {
+            .dashboard {
+                --sidebar-width: 250px;
+                --header-height: 70px;
+            }
         }
         
-        .nav-btn:hover {
-            background: rgba(var(--primary-rgb), 0.1);
-            border-color: var(--primary);
-        }
-        
-        .nav-btn.admin {
-            background: rgba(217, 70, 239, 0.1);
-            border-color: #d946ef;
-        }
-        
-        .nav-btn.admin:hover {
-            background: rgba(217, 70, 239, 0.2);
-        }
-        
-        .nav-btn.logout {
-            background: rgba(239, 68, 68, 0.1);
-            border-color: #ef4444;
-        }
-        
-        .nav-btn.logout:hover {
-            background: rgba(239, 68, 68, 0.2);
+        @media (max-width: 768px) {
+            .dashboard {
+                --sidebar-width: 0;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Главный контейнер -->
     <div class="dashboard">
         <!-- Сайдбар -->
-        <aside class="dashboard-sidebar">
+        <aside class="dashboard-sidebar glass-effect">
             <div class="sidebar-header">
                 <div class="user-info">
-                    <div class="user-avatar" id="userAvatar">МУ</div>
+                    <div class="user-avatar" id="userAvatar">У</div>
                     <div class="user-details">
-                        <h3 id="userName">Максим Усков</h3>
-                        <span class="role" id="userRole">Ученик 7Б</span>
+                        <h3 id="userName">Ученик 7Б</h3>
+                        <span class="role" id="userRole">Ученик</span>
                     </div>
                 </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
             </div>
 
+            <!-- Навигация -->
             <nav class="sidebar-nav">
                 <a href="#" class="nav-item active" data-section="overview">
-                    <i class="fas fa-home"></i> Обзор
+                    <i class="fas fa-home"></i>
+                    <span>Главная</span>
+                    <span class="nav-badge new">NEW</span>
                 </a>
                 <a href="#" class="nav-item" data-section="ai-chat">
-                    <i class="fas fa-robot"></i> AI Ассистент
+                    <i class="fas fa-robot"></i>
+                    <span>Чат с Лео</span>
                     <span class="nav-badge" id="aiUnread">0</span>
                 </a>
-                <a href="#" class="nav-item" data-section="schedule">
-                    <i class="fas fa-calendar-alt"></i> Расписание
-                </a>
                 <a href="#" class="nav-item" data-section="tasks">
-                    <i class="fas fa-tasks"></i> Задания
-                    <span class="nav-badge" id="tasksCount">3</span>
+                    <i class="fas fa-tasks"></i>
+                    <span>Задания</span>
+                    <span class="nav-badge" id="tasksCount">0</span>
+                </a>
+                <a href="#" class="nav-item" data-section="schedule">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Расписание</span>
                 </a>
                 <a href="#" class="nav-item" data-section="progress">
-                    <i class="fas fa-chart-line"></i> Прогресс
+                    <i class="fas fa-chart-line"></i>
+                    <span>Прогресс</span>
                 </a>
-                <a href="#" class="nav-item" data-section="game">
-                    <i class="fas fa-gamepad"></i> Игровая зона
+                <a href="#" class="nav-item" data-section="games">
+                    <i class="fas fa-gamepad"></i>
+                    <span>Учебные игры</span>
+                    <span class="nav-badge hot">HOT</span>
                 </a>
                 <a href="#" class="nav-item" data-section="rating">
-                    <i class="fas fa-trophy"></i> Рейтинг класса
+                    <i class="fas fa-trophy"></i>
+                    <span>Рейтинг класса</span>
+                </a>
+                <a href="#" class="nav-item" data-section="achievements">
+                    <i class="fas fa-award"></i>
+                    <span>Достижения</span>
+                    <span class="nav-badge" id="achievementsCount">0</span>
+                </a>
+                <a href="#" class="nav-item" data-section="library">
+                    <i class="fas fa-book"></i>
+                    <span>Библиотека</span>
                 </a>
             </nav>
 
-            <div class="sidebar-footer">
-                <div class="quick-stats">
-                    <div class="stat-item">
+            <!-- Статистика -->
+            <div class="sidebar-stats">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-star"></i></div>
+                    <div class="stat-info">
                         <div class="stat-value" id="statPoints">0</div>
                         <div class="stat-label">Очки</div>
                     </div>
-                    <div class="stat-item">
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-level-up-alt"></i></div>
+                    <div class="stat-info">
                         <div class="stat-value" id="statLevel">1</div>
                         <div class="stat-label">Уровень</div>
                     </div>
-                    <div class="stat-item">
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-medal"></i></div>
+                    <div class="stat-info">
                         <div class="stat-value" id="statRank">-</div>
                         <div class="stat-label">Место</div>
                     </div>
                 </div>
             </div>
+
+            <!-- Быстрые действия -->
+            <div class="sidebar-quick-actions">
+                <button class="quick-action" id="quickTask" title="Быстрое задание">
+                    <i class="fas fa-bolt"></i>
+                    <span>Быстрое задание</span>
+                </button>
+                <button class="quick-action" id="voiceAssistant" title="Голосовой помощник">
+                    <i class="fas fa-microphone"></i>
+                    <span>Голосовой Лео</span>
+                </button>
+                <button class="quick-action logout" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Выйти</span>
+                </button>
+            </div>
         </aside>
 
         <!-- Основной контент -->
         <main class="dashboard-main">
-            <header class="dashboard-header">
+            <!-- Шапка -->
+            <header class="dashboard-header glass-effect">
                 <div class="header-left">
-                    <h1 id="greetingText">Добро пожаловать!</h1>
-                    <p id="currentDate">Загрузка...</p>
+                    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="header-info">
+                        <h1 id="greetingText">Добро пожаловать!</h1>
+                        <p id="currentDateTime">Загрузка...</p>
+                    </div>
                 </div>
                 <div class="header-right">
-                    <button class="btn-icon" id="notificationsBtn" title="Уведомления">
-                        <i class="fas fa-bell"></i>
-                        <span class="badge" id="notificationsCount">0</span>
-                    </button>
-                    <button class="btn-icon" id="toggleSidebar" title="Скрыть панель">
-                        <i class="fas fa-bars"></i>
+                    <!-- Уведомления -->
+                    <div class="notifications-dropdown">
+                        <button class="icon-btn notifications-btn" id="notificationsBtn">
+                            <i class="fas fa-bell"></i>
+                            <span class="badge" id="notificationsBadge">0</span>
+                        </button>
+                        <div class="notifications-popup" id="notificationsPopup">
+                            <div class="notifications-header">
+                                <h4>Уведомления</h4>
+                                <button class="clear-notifications" id="clearNotifications">Очистить все</button>
+                            </div>
+                            <div class="notifications-list" id="notificationsList">
+                                <!-- Уведомления загружаются через JS -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Очки и прогресс -->
+                    <div class="header-stats">
+                        <div class="points-display">
+                            <i class="fas fa-star"></i>
+                            <span id="headerPoints">0</span>
+                        </div>
+                        <div class="level-display">
+                            Уровень <strong id="headerLevel">1</strong>
+                        </div>
+                    </div>
+                    
+                    <!-- Голосовой помощник -->
+                    <button class="icon-btn voice-btn" id="voiceToggle">
+                        <i class="fas fa-microphone"></i>
                     </button>
                 </div>
             </header>
 
+            <!-- Контент страницы -->
             <div class="dashboard-content" id="dashboardContent">
-                <!-- Секция Обзор -->
-                <div class="content-section active" id="section-overview">
-                    <div class="widgets-grid">
-                        <!-- AI Ассистент -->
-                        <div class="widget widget-primary">
-                            <div class="widget-header">
-                                <h3><i class="fas fa-robot"></i> Быстрый вопрос</h3>
-                            </div>
-                            <div class="widget-body">
-                                <div class="ai-quick-chat">
-                                    <input type="text" id="quickQuestion" placeholder="Спросите что-нибудь...">
-                                    <button id="askQuickBtn" class="btn-small">
-                                        <i class="fas fa-paper-plane"></i>
-                                    </button>
+                <!-- Главная -->
+                <section class="content-section active" id="section-overview">
+                    <div class="welcome-banner glass-effect">
+                        <div class="welcome-content">
+                            <h2><i class="fas fa-robot"></i> Добро пожаловать в Leo Assistant!</h2>
+                            <p>Твой персональный помощник для учебы в 7Б классе</p>
+                            <div class="welcome-stats">
+                                <div class="welcome-stat">
+                                    <i class="fas fa-tasks"></i>
+                                    <span>Активных заданий: <strong id="activeTasksCount">0</strong></span>
                                 </div>
-                                <div id="quickAnswer" class="ai-answer"></div>
+                                <div class="welcome-stat">
+                                    <i class="fas fa-trophy"></i>
+                                    <span>Твое место: <strong id="welcomeRank">-</strong></span>
+                                </div>
+                                <div class="welcome-stat">
+                                    <i class="fas fa-fire"></i>
+                                    <span>Дней подряд: <strong id="streakDays">0</strong></span>
+                                </div>
                             </div>
                         </div>
+                        <div class="welcome-actions">
+                            <button class="btn-primary" id="quickStartBtn">
+                                <i class="fas fa-play"></i> Начать обучение
+                            </button>
+                            <button class="btn-secondary" id="dailyTaskBtn">
+                                <i class="fas fa-calendar-check"></i> Ежедневное задание
+                            </button>
+                        </div>
+                    </div>
 
-                        <!-- Текущие задания -->
-                        <div class="widget">
+                    <!-- Виджеты главной -->
+                    <div class="widgets-grid">
+                        <!-- Быстрый чат с Лео -->
+                        <div class="widget glass-effect quick-chat-widget">
                             <div class="widget-header">
-                                <h3><i class="fas fa-tasks"></i> Ближайшие задания</h3>
-                                <a href="#" class="widget-link" data-section="tasks">Все</a>
+                                <h3><i class="fas fa-robot"></i> Быстрый вопрос Лео</h3>
+                                <span class="widget-status ai-online">
+                                    <i class="fas fa-circle"></i> Online
+                                </span>
                             </div>
                             <div class="widget-body">
-                                <div class="tasks-list" id="upcomingTasks">
-                                    <div class="task-item">
-                                        <div class="task-info">
-                                            <div class="task-subject">Математика</div>
-                                            <div class="task-title">Загрузка заданий...</div>
+                                <div class="quick-chat-container">
+                                    <div class="quick-chat-messages" id="quickChatMessages">
+                                        <div class="chat-message ai">
+                                            <div class="message-avatar">🤖</div>
+                                            <div class="message-content">
+                                                <div class="message-text">Привет! Я Лео, твой AI помощник. Чем могу помочь с учебой?</div>
+                                                <div class="message-time">Только что</div>
+                                            </div>
                                         </div>
-                                        <button class="btn-small btn-complete" disabled>
-                                            <i class="fas fa-check"></i>
+                                    </div>
+                                    <div class="quick-chat-input">
+                                        <input type="text" id="quickChatInput" placeholder="Спроси о математике, физике...">
+                                        <button class="send-btn" id="quickChatSend">
+                                            <i class="fas fa-paper-plane"></i>
                                         </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Расписание сегодня -->
-                        <div class="widget">
+                        <!-- Ближайшие задания -->
+                        <div class="widget glass-effect">
                             <div class="widget-header">
-                                <h3><i class="fas fa-calendar-day"></i> Сегодня</h3>
+                                <h3><i class="fas fa-clock"></i> Ближайшие дедлайны</h3>
+                                <a href="#" class="view-all" data-section="tasks">Все задания</a>
                             </div>
                             <div class="widget-body">
-                                <div class="today-schedule" id="todaySchedule">
-                                    <div class="schedule-item">
-                                        <div class="lesson-time">9:00</div>
-                                        <div class="lesson-info">
-                                            <div class="lesson-name">Загрузка...</div>
-                                            <div class="lesson-room">-</div>
+                                <div class="deadlines-list" id="deadlinesList">
+                                    <!-- Задания загружаются через JS -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Сегодняшние уроки -->
+                        <div class="widget glass-effect">
+                            <div class="widget-header">
+                                <h3><i class="fas fa-calendar-day"></i> Сегодня на уроках</h3>
+                                <span class="lesson-count" id="todayLessonsCount">0 уроков</span>
+                            </div>
+                            <div class="widget-body">
+                                <div class="today-lessons" id="todayLessons">
+                                    <!-- Уроки загружаются через JS -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Прогресс обучения -->
+                        <div class="widget glass-effect progress-widget">
+                            <div class="widget-header">
+                                <h3><i class="fas fa-chart-line"></i> Твой прогресс</h3>
+                                <span class="progress-percent" id="progressPercent">0%</span>
+                            </div>
+                            <div class="widget-body">
+                                <div class="progress-chart-container">
+                                    <canvas id="progressChart" width="400" height="200"></canvas>
+                                </div>
+                                <div class="progress-stats">
+                                    <div class="progress-stat">
+                                        <div class="stat-value" id="completedCount">0</div>
+                                        <div class="stat-label">Выполнено</div>
+                                    </div>
+                                    <div class="progress-stat">
+                                        <div class="stat-value" id="accuracyRate">0%</div>
+                                        <div class="stat-label">Точность</div>
+                                    </div>
+                                    <div class="progress-stat">
+                                        <div class="stat-value" id="avgScore">0</div>
+                                        <div class="stat-label">Средний балл</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Учебные игры -->
+                        <div class="widget glass-effect games-widget">
+                            <div class="widget-header">
+                                <h3><i class="fas fa-gamepad"></i> Учебные игры</h3>
+                                <span class="games-badge">+100 очков за игру</span>
+                            </div>
+                            <div class="widget-body">
+                                <div class="games-grid">
+                                    <div class="game-card" data-game="math">
+                                        <div class="game-icon">∫</div>
+                                        <div class="game-info">
+                                            <h4>Математический бой</h4>
+                                            <p>Решай уравнения 7 класса</p>
+                                            <button class="btn-small play-game">Играть</button>
+                                        </div>
+                                    </div>
+                                    <div class="game-card" data-game="physics">
+                                        <div class="game-icon">⚡</div>
+                                        <div class="game-info">
+                                            <h4>Физическая викторина</h4>
+                                            <p>Законы Ньютона и не только</p>
+                                            <button class="btn-small play-game">Играть</button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Прогресс -->
-                        <div class="widget widget-chart">
+                        <!-- Достижения -->
+                        <div class="widget glass-effect">
                             <div class="widget-header">
-                                <h3><i class="fas fa-chart-line"></i> Прогресс за неделю</h3>
+                                <h3><i class="fas fa-award"></i> Последние достижения</h3>
+                                <a href="#" class="view-all" data-section="achievements">Все</a>
                             </div>
                             <div class="widget-body">
-                                <div class="progress-chart">
-                                    <canvas id="progressChart" width="300" height="150"></canvas>
-                                </div>
-                                <div class="chart-stats">
-                                    <div class="chart-stat">
-                                        <div class="stat-value" id="completedTasks">0</div>
-                                        <div class="stat-label">Выполнено</div>
-                                    </div>
-                                    <div class="chart-stat">
-                                        <div class="stat-value" id="pointsEarned">0</div>
-                                        <div class="stat-label">Очков</div>
-                                    </div>
+                                <div class="achievements-preview" id="achievementsPreview">
+                                    <!-- Достижения загружаются через JS -->
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </section>
 
-                <!-- Секция AI Чата -->
-                <div class="content-section" id="section-ai-chat">
-                    <div class="widget widget-full">
-                        <div class="widget-header">
-                            <h3><i class="fas fa-robot"></i> AI Ассистент Лео</h3>
-                            <div class="widget-actions">
-                                <button class="btn-icon" id="clearChat" title="Очистить чат">
+                <!-- Чат с Лео (полноценный) -->
+                <section class="content-section" id="section-ai-chat">
+                    <div class="chat-container glass-effect">
+                        <div class="chat-header">
+                            <div class="chat-title">
+                                <div class="ai-avatar">🤖</div>
+                                <div>
+                                    <h3>Чат с AI помощником Лео</h3>
+                                    <p class="ai-status">
+                                        <span class="status-indicator online"></span>
+                                        <span>Online • Готов помочь с учебой</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="chat-actions">
+                                <button class="icon-btn" id="clearChat" title="Очистить чат">
                                     <i class="fas fa-trash"></i>
+                                </button>
+                                <button class="icon-btn" id="chatHistory" title="История чата">
+                                    <i class="fas fa-history"></i>
+                                </button>
+                                <button class="icon-btn" id="voiceChat" title="Голосовой чат">
+                                    <i class="fas fa-microphone"></i>
                                 </button>
                             </div>
                         </div>
-                        <div class="widget-body">
-                            <div class="ai-chat-container">
-                                <div class="chat-messages" id="chatMessages">
-                                    <div class="chat-message ai-message">
-                                        <div class="chat-avatar">🤖</div>
-                                        <div class="chat-content">
-                                            <div class="chat-text">
-                                                Привет! Я Лео, твой AI помощник. Могу помочь с учебой, заданиями или просто поболтать!
-                                            </div>
-                                            <div class="chat-time">Только что</div>
-                                        </div>
-                                    </div>
+                        
+                        <div class="chat-body">
+                            <div class="chat-messages-container" id="chatMessagesContainer">
+                                <!-- Сообщения загружаются через JS -->
+                            </div>
+                            
+                            <div class="chat-input-container">
+                                <div class="chat-input-actions">
+                                    <button class="input-action" title="Прикрепить файл">
+                                        <i class="fas fa-paperclip"></i>
+                                    </button>
+                                    <button class="input-action" title="Отправить фото задания">
+                                        <i class="fas fa-camera"></i>
+                                    </button>
+                                    <button class="input-action" title="Математический режим">
+                                        <i class="fas fa-square-root-alt"></i>
+                                    </button>
                                 </div>
-                                
-                                <div class="chat-input">
-                                    <input type="text" id="chatInput" placeholder="Напишите сообщение...">
-                                    <button id="sendMessage" class="btn-primary">
+                                <div class="chat-input-wrapper">
+                                    <textarea 
+                                        id="chatInput" 
+                                        placeholder="Напишите ваш вопрос по математике, физике или другому предмету 7 класса..."
+                                        rows="2"
+                                    ></textarea>
+                                    <button class="send-btn" id="sendMessage">
                                         <i class="fas fa-paper-plane"></i>
                                     </button>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Секция Рейтинга -->
-                <div class="content-section" id="section-rating">
-                    <div class="widget widget-full">
-                        <div class="widget-header">
-                            <h3><i class="fas fa-trophy"></i> Рейтинг 7Б класса</h3>
-                            <span class="user-rank">Ваше место: <strong id="userRankPosition">-</strong></span>
-                        </div>
-                        <div class="widget-body">
-                            <div class="rating-container">
-                                <div class="rating-top3">
-                                    <!-- 2 место -->
-                                    <div class="top-card second">
-                                        <div class="top-rank">2</div>
-                                        <div class="top-avatar" id="top2Avatar">АИ</div>
-                                        <div class="top-name" id="top2Name">Загрузка...</div>
-                                        <div class="top-points" id="top2Points">0 очков</div>
-                                    </div>
-                                    
-                                    <!-- 1 место -->
-                                    <div class="top-card first">
-                                        <div class="top-rank">1</div>
-                                        <div class="top-avatar" id="top1Avatar">МП</div>
-                                        <div class="top-name" id="top1Name">Загрузка...</div>
-                                        <div class="top-points" id="top1Points">0 очков</div>
-                                    </div>
-                                    
-                                    <!-- 3 место -->
-                                    <div class="top-card third">
-                                        <div class="top-rank">3</div>
-                                        <div class="top-avatar" id="top3Avatar">ДС</div>
-                                        <div class="top-name" id="top3Name">Загрузка...</div>
-                                        <div class="top-points" id="top3Points">0 очков</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="rating-full-list">
-                                    <div class="rating-header">
-                                        <div class="header-rank">#</div>
-                                        <div class="header-name">Ученик</div>
-                                        <div class="header-points">Очки</div>
-                                        <div class="header-tasks">Задания</div>
-                                    </div>
-                                    <div class="rating-list" id="fullRatingList">
-                                        <!-- Список загрузится через JavaScript -->
-                                    </div>
+                                <div class="chat-quick-questions">
+                                    <span>Быстрые вопросы:</span>
+                                    <button class="quick-question" data-question="Объясни теорему Пифагора">Теорема Пифагора</button>
+                                    <button class="quick-question" data-question="Что такое сила трения?">Сила трения</button>
+                                    <button class="quick-question" data-question="Как решать линейные уравнения?">Линейные уравнения</button>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </section>
 
-                <!-- Другие секции будут аналогично -->
+                <!-- Задания -->
+                <section class="content-section" id="section-tasks">
+                    <div class="tasks-header glass-effect">
+                        <div>
+                            <h2><i class="fas fa-tasks"></i> Учебные задания</h2>
+                            <p>Выполняй задания и получай очки опыта</p>
+                        </div>
+                        <div class="tasks-filter">
+                            <select id="tasksFilter">
+                                <option value="all">Все задания</option>
+                                <option value="math">Математика</option>
+                                <option value="physics">Физика</option>
+                                <option value="russian">Русский язык</option>
+                                <option value="history">История</option>
+                                <option value="pending">Не выполнено</option>
+                                <option value="completed">Выполнено</option>
+                            </select>
+                            <button class="btn-primary" id="refreshTasks">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="tasks-container">
+                        <!-- Задания загружаются через JS -->
+                    </div>
+                </section>
+
+                <!-- Рейтинг класса -->
+                <section class="content-section" id="section-rating">
+                    <div class="rating-header glass-effect">
+                        <div>
+                            <h2><i class="fas fa-trophy"></i> Рейтинг 7Б класса</h2>
+                            <p>Текущий семестр • Обновляется в реальном времени</p>
+                        </div>
+                        <div class="rating-user-info">
+                            <div class="user-rank-badge">
+                                <span>Твое место</span>
+                                <div class="rank-number" id="userCurrentRank">-</div>
+                            </div>
+                            <div class="user-points-display">
+                                <i class="fas fa-star"></i>
+                                <span id="userRatingPoints">0</span> очков
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rating-container">
+                        <!-- Топ-3 ученика -->
+                        <div class="rating-top3">
+                            <!-- 2 место -->
+                            <div class="top-student second">
+                                <div class="top-medal">🥈</div>
+                                <div class="top-avatar" id="top2Avatar">?</div>
+                                <div class="top-info">
+                                    <div class="top-name" id="top2Name">Место свободно</div>
+                                    <div class="top-points" id="top2Points">0 очков</div>
+                                </div>
+                            </div>
+                            
+                            <!-- 1 место -->
+                            <div class="top-student first">
+                                <div class="top-medal">🥇</div>
+                                <div class="top-avatar" id="top1Avatar">?</div>
+                                <div class="top-info">
+                                    <div class="top-name" id="top1Name">Место свободно</div>
+                                    <div class="top-points" id="top1Points">0 очков</div>
+                                </div>
+                            </div>
+                            
+                            <!-- 3 место -->
+                            <div class="top-student third">
+                                <div class="top-medal">🥉</div>
+                                <div class="top-avatar" id="top3Avatar">?</div>
+                                <div class="top-info">
+                                    <div class="top-name" id="top3Name">Место свободно</div>
+                                    <div class="top-points" id="top3Points">0 очков</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Полный список рейтинга -->
+                        <div class="rating-full-list glass-effect">
+                            <div class="rating-table-header">
+                                <div class="header-cell rank">Место</div>
+                                <div class="header-cell student">Ученик</div>
+                                <div class="header-cell points">Очки</div>
+                                <div class="header-cell level">Уровень</div>
+                                <div class="header-cell tasks">Задания</div>
+                                <div class="header-cell accuracy">Точность</div>
+                            </div>
+                            <div class="rating-table-body" id="ratingTableBody">
+                                <!-- Рейтинг загружается через JS -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Учебные игры -->
+                <section class="content-section" id="section-games">
+                    <div class="games-header glass-effect">
+                        <h2><i class="fas fa-gamepad"></i> Учебные игры</h2>
+                        <p>Изучай предметы через игровые задания • Максимум 100 очков за игру в день</p>
+                    </div>
+
+                    <div class="games-grid-container">
+                        <!-- Математическая игра -->
+                        <div class="game-full-card" data-game="math-quiz">
+                            <div class="game-card-header">
+                                <div class="game-icon-large">∫</div>
+                                <div class="game-card-info">
+                                    <h3>Математический квиз</h3>
+                                    <p class="game-difficulty">
+                                        <span class="difficulty-badge">7 класс</span>
+                                        <span class="time-estimate">~15 минут</span>
+                                    </p>
+                                </div>
+                                <div class="game-rewards">
+                                    <div class="reward-item">
+                                        <i class="fas fa-star"></i>
+                                        <span>+50 очков</span>
+                                    </div>
+                                    <div class="reward-item">
+                                        <i class="fas fa-bolt"></i>
+                                        <span>+100 опыта</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="game-card-body">
+                                <p>Реши 10 задач по математике 7 класса. Включает уравнения, геометрию и алгебру.</p>
+                                <div class="game-stats">
+                                    <div class="game-stat">
+                                        <i class="fas fa-users"></i>
+                                        <span>Играли: <strong id="mathPlayers">0</strong></span>
+                                    </div>
+                                    <div class="game-stat">
+                                        <i class="fas fa-trophy"></i>
+                                        <span>Рекорд: <strong id="mathRecord">0</strong></span>
+                                    </div>
+                                    <div class="game-stat">
+                                        <i class="fas fa-chart-line"></i>
+                                        <span>Сложность: <strong>Средняя</strong></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="game-card-footer">
+                                <button class="btn-primary play-full-game" data-game="math">
+                                    <i class="fas fa-play"></i> Начать игру
+                                </button>
+                                <button class="btn-secondary game-info">
+                                    <i class="fas fa-info-circle"></i> Подробнее
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Физическая игра -->
+                        <div class="game-full-card" data-game="physics-lab">
+                            <div class="game-card-header">
+                                <div class="game-icon-large">⚡</div>
+                                <div class="game-card-info">
+                                    <h3>Лаборатория физики</h3>
+                                    <p class="game-difficulty">
+                                        <span class="difficulty-badge">7 класс</span>
+                                        <span class="time-estimate">~20 минут</span>
+                                    </p>
+                                </div>
+                                <div class="game-rewards">
+                                    <div class="reward-item">
+                                        <i class="fas fa-star"></i>
+                                        <span>+70 очков</span>
+                                    </div>
+                                    <div class="reward-item">
+                                        <i class="fas fa-bolt"></i>
+                                        <span>+150 опыта</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="game-card-body">
+                                <p>Проведи виртуальные эксперименты и ответь на вопросы по физике 7 класса.</p>
+                                <div class="game-stats">
+                                    <div class="game-stat">
+                                        <i class="fas fa-users"></i>
+                                        <span>Играли: <strong id="physicsPlayers">0</strong></span>
+                                    </div>
+                                    <div class="game-stat">
+                                        <i class="fas fa-trophy"></i>
+                                        <span>Рекорд: <strong id="physicsRecord">0</strong></span>
+                                    </div>
+                                    <div class="game-stat">
+                                        <i class="fas fa-chart-line"></i>
+                                        <span>Сложность: <strong>Высокая</strong></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="game-card-footer">
+                                <button class="btn-primary play-full-game" data-game="physics">
+                                    <i class="fas fa-play"></i> Начать игру
+                                </button>
+                                <button class="btn-secondary game-info">
+                                    <i class="fas fa-info-circle"></i> Подробнее
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Игра по русскому языку -->
+                        <div class="game-full-card" data-game="russian-challenge">
+                            <div class="game-card-header">
+                                <div class="game-icon-large">📚</div>
+                                <div class="game-card-info">
+                                    <h3>Грамматический вызов</h3>
+                                    <p class="game-difficulty">
+                                        <span class="difficulty-badge">7 класс</span>
+                                        <span class="time-estimate">~10 минут</span>
+                                    </p>
+                                </div>
+                                <div class="game-rewards">
+                                    <div class="reward-item">
+                                        <i class="fas fa-star"></i>
+                                        <span>+40 очков</span>
+                                    </div>
+                                    <div class="reward-item">
+                                        <i class="fas fa-bolt"></i>
+                                        <span>+80 опыта</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="game-card-body">
+                                <p>Исправь ошибки в тексте и ответь на вопросы по грамматике русского языка.</p>
+                                <div class="game-stats">
+                                    <div class="game-stat">
+                                        <i class="fas fa-users"></i>
+                                        <span>Играли: <strong id="russianPlayers">0</strong></span>
+                                    </div>
+                                    <div class="game-stat">
+                                        <i class="fas fa-trophy"></i>
+                                        <span>Рекорд: <strong id="russianRecord">0</strong></span>
+                                    </div>
+                                    <div class="game-stat">
+                                        <i class="fas fa-chart-line"></i>
+                                        <span>Сложность: <strong>Легкая</strong></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="game-card-footer">
+                                <button class="btn-primary play-full-game" data-game="russian">
+                                    <i class="fas fa-play"></i> Начать игру
+                                </button>
+                                <button class="btn-secondary game-info">
+                                    <i class="fas fa-info-circle"></i> Подробнее
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Игровая статистика -->
+                    <div class="games-stats glass-effect">
+                        <h3><i class="fas fa-chart-bar"></i> Статистика игр</h3>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-value" id="totalGamesPlayed">0</div>
+                                <div class="stat-label">Всего игр сыграно</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="gamesAccuracy">0%</div>
+                                <div class="stat-label">Средняя точность</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="gamesPointsEarned">0</div>
+                                <div class="stat-label">Очков заработано</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="gamesTimeSpent">0ч</div>
+                                <div class="stat-label">Времени в играх</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Другие секции будут загружаться динамически -->
             </div>
+
+            <!-- Мобильная навигация -->
+            <nav class="mobile-nav" id="mobileNav">
+                <a href="#" class="mobile-nav-item active" data-section="overview">
+                    <i class="fas fa-home"></i>
+                    <span>Главная</span>
+                </a>
+                <a href="#" class="mobile-nav-item" data-section="ai-chat">
+                    <i class="fas fa-robot"></i>
+                    <span>Чат</span>
+                </a>
+                <a href="#" class="mobile-nav-item" data-section="tasks">
+                    <i class="fas fa-tasks"></i>
+                    <span>Задания</span>
+                </a>
+                <a href="#" class="mobile-nav-item" data-section="games">
+                    <i class="fas fa-gamepad"></i>
+                    <span>Игры</span>
+                </a>
+                <a href="#" class="mobile-nav-item" data-section="rating">
+                    <i class="fas fa-trophy"></i>
+                    <span>Рейтинг</span>
+                </a>
+            </nav>
         </main>
     </div>
 
-    <!-- Системная навигация -->
-    <div class="system-navigation">
-        <button class="nav-btn" onclick="window.location.href='index.html'">
-            <i class="fas fa-home"></i> Главная
-        </button>
-        <button class="nav-btn admin" onclick="goToAdmin()">
-            <i class="fas fa-shield-alt"></i> Админ-панель
-        </button>
-        <button class="nav-btn logout" onclick="logout()">
-            <i class="fas fa-sign-out-alt"></i> Выйти
-        </button>
+    <!-- Модальные окна -->
+    <div class="modal" id="taskModal">
+        <div class="modal-content glass-effect">
+            <div class="modal-header">
+                <h3 id="modalTaskTitle">Задание</h3>
+                <button class="modal-close" id="closeTaskModal">&times;</button>
+            </div>
+            <div class="modal-body" id="modalTaskContent">
+                <!-- Контент задания -->
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="gameModal">
+        <div class="modal-content glass-effect game-modal">
+            <div class="modal-header">
+                <h3 id="modalGameTitle">Игра</h3>
+                <button class="modal-close" id="closeGameModal">&times;</button>
+            </div>
+            <div class="modal-body" id="modalGameContent">
+                <!-- Контент игры -->
+            </div>
+        </div>
     </div>
 
     <!-- JavaScript -->
@@ -344,28 +763,19 @@
     <script src="js/dashboard.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
+    <!-- Инициализация -->
     <script>
-        function goToAdmin() {
-            const user = JSON.parse(localStorage.getItem('current_user') || '{}');
-            if (user.role === 'admin') {
-                localStorage.setItem('is_admin', 'true');
-                window.location.href = 'admin.html';
-            } else {
-                const password = prompt('Введите пароль администратора:');
-                if (password === 'admin123') {
-                    localStorage.setItem('is_admin', 'true');
-                    window.location.href = 'admin.html';
-                } else {
-                    alert('Неверный пароль!');
-                }
-            }
-        }
-        
-        function logout() {
-            localStorage.removeItem('current_user');
-            localStorage.removeItem('is_admin');
+        // Проверка авторизации
+        if (!localStorage.getItem('current_user')) {
             window.location.href = 'index.html';
         }
+        
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof DashboardSystem !== 'undefined') {
+                window.dashboardSystem = new DashboardSystem();
+            }
+        });
     </script>
 </body>
 </html>

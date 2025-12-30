@@ -973,3 +973,261 @@
 ::-webkit-scrollbar-thumb:hover {
     background: var(--border-light);
 }
+/* Стили для админ-модальных окон */
+.admin-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.admin-modal .modal-content {
+    background: var(--admin-card);
+    border-radius: 20px;
+    max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideInUp 0.4s ease;
+    border: 1px solid var(--admin-border);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+}
+
+.admin-modal .modal-header {
+    padding: 25px 30px;
+    border-bottom: 1px solid var(--admin-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    background: var(--admin-card);
+    z-index: 10;
+}
+
+.admin-modal .modal-header h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.admin-modal .modal-close {
+    background: transparent;
+    border: none;
+    color: var(--admin-text-muted);
+    font-size: 20px;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.admin-modal .modal-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--admin-text);
+}
+
+.admin-modal .modal-body {
+    padding: 30px;
+}
+
+.admin-modal .modal-footer {
+    padding: 25px 30px;
+    border-top: 1px solid var(--admin-border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    position: sticky;
+    bottom: 0;
+    background: var(--admin-card);
+    z-index: 10;
+}
+
+/* Анимации для модальных окон */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideOutDown {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+}
+
+/* Стили для алертов */
+.alert {
+    padding: 20px;
+    border-radius: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    border-left: 4px solid;
+    margin-bottom: 15px;
+}
+
+.alert-success {
+    background: rgba(16, 185, 129, 0.1);
+    border-left-color: var(--admin-success);
+}
+
+.alert-error, .alert-danger {
+    background: rgba(239, 68, 68, 0.1);
+    border-left-color: var(--admin-danger);
+}
+
+.alert-warning {
+    background: rgba(245, 158, 11, 0.1);
+    border-left-color: var(--admin-warning);
+}
+
+.alert-info {
+    background: rgba(59, 130, 246, 0.1);
+    border-left-color: var(--admin-info);
+}
+
+.alert-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.alert-success .alert-icon {
+    color: var(--admin-success);
+}
+
+.alert-error .alert-icon, .alert-danger .alert-icon {
+    color: var(--admin-danger);
+}
+
+.alert-warning .alert-icon {
+    color: var(--admin-warning);
+}
+
+.alert-info .alert-icon {
+    color: var(--admin-info);
+}
+
+.alert-content {
+    flex: 1;
+}
+
+.alert-title {
+    font-weight: 700;
+    margin-bottom: 5px;
+    color: var(--admin-text);
+}
+
+.alert-message {
+    color: var(--admin-text-muted);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Стили для статусов */
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.status-active {
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--admin-success);
+}
+
+.status-inactive {
+    background: rgba(148, 163, 184, 0.2);
+    color: var(--admin-text-muted);
+}
+
+.status-banned {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--admin-danger);
+}
+
+/* Стили для аватаров */
+.user-avatar-small {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--admin-primary), var(--admin-secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+/* Анимация для AI статуса */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(1.1);
+    }
+}
+
+.status-indicator.training {
+    animation: pulse 1.5s infinite;
+}
+
+/* Адаптивность для модальных окон */
+@media (max-width: 768px) {
+    .admin-modal .modal-content {
+        max-width: 95%;
+        max-height: 95vh;
+        margin: 10px;
+    }
+    
+    .admin-modal .modal-header,
+    .admin-modal .modal-body,
+    .admin-modal .modal-footer {
+        padding: 20px;
+    }
+    
+    .admin-modal .modal-footer {
+        flex-direction: column;
+    }
+    
+    .admin-modal .modal-footer button {
+        width: 100%;
+    }
+}
+

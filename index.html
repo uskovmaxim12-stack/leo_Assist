@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leo Assistant</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Частицы на фоне -->
+        <div id="particles-js"></div>
+        
+        <div class="main-content">
+            <div class="logo-section">
+                <div class="logo">
+                    <div class="logo-icon">🤖</div>
+                    <h1 class="logo-text">Leo Assistant</h1>
+                </div>
+                <p class="tagline">Искусственный интеллект для 7Б класса</p>
+            </div>
+
+            <!-- Формы -->
+            <div class="form-container">
+                <!-- Форма входа -->
+                <div id="loginForm" class="form active">
+                    <h2>Вход в систему</h2>
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="loginUsername" placeholder="Логин" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="loginPassword" placeholder="Пароль" required>
+                    </div>
+                    <button id="loginBtn" class="btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> Войти
+                    </button>
+                    <div class="form-links">
+                        <a href="#" class="form-switch" data-target="register">Создать аккаунт</a>
+                        <a href="#" class="form-switch" data-target="admin">Вход для администратора</a>
+                    </div>
+                </div>
+
+                <!-- Форма регистрации -->
+                <div id="registerForm" class="form">
+                    <h2>Регистрация</h2>
+                    <div class="input-group">
+                        <i class="fas fa-user-plus"></i>
+                        <input type="text" id="regLogin" placeholder="Придумайте логин" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="regName" placeholder="Ваше полное имя" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="regPassword" placeholder="Пароль (минимум 4 символа)" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="regConfirmPassword" placeholder="Повторите пароль" required>
+                    </div>
+                    <button id="registerBtn" class="btn-primary">
+                        <i class="fas fa-user-plus"></i> Зарегистрироваться
+                    </button>
+                    <div class="form-links">
+                        <a href="#" class="form-switch" data-target="login">Уже есть аккаунт</a>
+                    </div>
+                </div>
+
+                <!-- Форма администратора -->
+                <div id="adminForm" class="form">
+                    <h2>Администратор</h2>
+                    <div class="input-group">
+                        <i class="fas fa-key"></i>
+                        <input type="password" id="adminPassword" placeholder="Пароль администратора" required>
+                    </div>
+                    <button id="adminBtn" class="btn-admin">
+                        <i class="fas fa-lock"></i> Войти как администратор
+                    </button>
+                    <div class="form-links">
+                        <a href="#" class="form-switch" data-target="login">Обычный вход</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Фичи -->
+            <div class="features">
+                <div class="feature">
+                    <i class="fas fa-robot"></i>
+                    <h3>AI Помощник</h3>
+                    <p>Помощь с домашними заданиями</p>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Статистика</h3>
+                    <p>Отслеживание прогресса</p>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-gamepad"></i>
+                    <h3>Игровое обучение</h3>
+                    <p>Учись с интересом</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Нейросеть -->
+        <div class="neural-network">
+            <div class="neural-node"></div>
+            <div class="neural-node"></div>
+            <div class="neural-node"></div>
+            <div class="neural-connection"></div>
+            <div class="neural-connection"></div>
+        </div>
+    </div>
+
+    <!-- Скрипты -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="js/particles-config.js"></script>
+    <script src="js/database.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

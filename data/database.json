@@ -1,0 +1,263 @@
+// js/database.js - ИСПРАВЛЕННАЯ БАЗА ДАННЫХ БЕЗ БАГОВ
+class Database {
+    constructor() {
+        this.dbName = 'leo_assistant_db_v2'; // Новая версия чтобы избежать конфликтов
+        this.init();
+    }
+
+    init() {
+        if (!localStorage.getItem(this.dbName)) {
+            console.log('📁 Создаем новую базу данных...');
+            const initialData = {
+                version: "2.0",
+                users: [], // АБСОЛЮТНО ПУСТОЙ список пользователей
+                classes: {
+                    "7B": {
+                        schedule: [
+                            {"day": "Пн", "lessons": ["Математика (212)", "Русский язык (108)", "Физика (305)"]},
+                            {"day": "Вт", "lessons": ["Английский (203)", "История (111)", "Литература (109)"]},
+                            {"day": "Ср", "lessons": ["Информатика (415)", "Биология (208)", "Геометрия (212)"]}
+                        ],
+                        tasks: [
+                            {"id": 1, "subject": "Математика", "title": "№345-348 стр. 45", "dueDate": "2024-05-20", "priority": "high"},
+                            {"id": 2, "subject": "Физика", "title": "Лаб. работа №3", "dueDate": "2024-05-22", "priority": "medium"},
+                            {"id": 3, "subject": "История", "title": "Конспект §18", "dueDate": "2024-05-25", "priority": "low"}
+                        ],
+                        students: [] // ПУСТОЙ список учеников
+                    }
+                },
+                ai_knowledge: {
+                    greetings: ["Привет! Я Лео, твой AI помощник.", "Здравствуй! Готов помочь с учебой."],
+                    subjects: {
+                        math: "Математика изучает числа и структуры.",
+                        physics: "Физика - наука о природе."
+                    }
+                },
+                system: {
+                    admin_password: "admin123", // Пароль администратора по умолчанию
+                    total_logins: 0,
+                    maintenance_mode: false,
+                    registration_enabled: true
+                }
+            };
+            
+            // СОЗДАЕМ ТОЛЬКО ОДНОГО АДМИНИСТРАТОРА
+            initialData.users.push({
+                id: 1,
+                login: "admin",
+                password: "admin123", // В реальном проекте нужно хэшировать!
+                name: "Администратор системы",
+                avatar: "АС",
+                class: "admin",
+                role: "admin",
+                points: 0,
+                level: 99,
+                created_at: new Date().toISOString(),
+                tasks_completed: [],
+                settings: {}
+            });
+            
+            this.save(initialData);
+            console.log('✅ База данных создана с одним администратором');
+        }
+    }
+
+    // Сохранить данные
+    save(data) {
+        try {
+            localStorage.setItem(this.dbName, JSON.stringify(data));
+            return true;
+        } catch (e) {
+            console.error('❌ Ошибка сохранения:', e);
+            return false;
+        }
+    }
+
+    // Получить все данные
+    getAll() {
+        try {
+            const data = localStorage.getItem(this.dbName);
+            return data ? JSON.parse(data) : null;
+        } catch (e) {
+            console.error('❌ Ошибка загрузки данных:', e);
+            return null;
+        }
+    }
+
+    // ===== РАБОТА С ПОЛЬЗОВАТЕЛЯМИ =====
+    
+    // Добавить нового пользователя
+    addUser(userData) {
+        const db = this.getAll();
+        if (!db) {
+            return { success: false, error: "База данных не найдена" };
+        }
+
+        // Проверяем логин
+        const login = userData.login.trim();
+        if (!login) {
+            return { success: false, error: "Логин не может быть пустым" };
+        }
+
+        // Проверяем, нет ли уже такого логина
+        const userExists = db.users.some(u => 
+            u.login.toLowerCase() === login.toLowerCase()
+        );
+        
+        if (userExists) {
+            return { success: false, error: "Пользователь с таким логином уже существует" };
+        }
+
+        // Проверяем имя
+        const name = userData.name?.trim() || login;
+        if (!name) {
+            return { success: false, error: "Имя не может быть пустым" };
+        }
+
+        // Проверяем пароль
+        const password = userData.password;
+        if (!password || password.length < 4) {
+            return { success: false, error: "Пароль должен быть не менее 4 символов" };
+        }
+
+        // Создаем нового пользователя
+        const newUser = {
+            id: Date.now(),
+            login: login,
+            password: password,
+            name: name,
+            avatar: this.generateAvatar(name),
+            class: "7B",
+            role: "student",
+            points: 0,
+            level: 1,
+            experience: 0,
+            tasks_completed: [],
+            achievements: [],
+            last_login: null,
+            created_at: new Date().toISOString(),
+            settings: {
+                theme: "dark",
+                notifications: true,
+                voice_assistant: true
+            }
+        };
+
+        db.users.push(newUser);
+        
+        // Добавляем в класс
+        if (!db.classes["7B"]) {
+            db.classes["7B"] = { students: [], tasks: [], schedule: [] };
+        }
+        
+        if (!db.classes["7B"].students) {
+            db.classes["7B"].students = [];
+        }
+        
+        db.classes["7B"].students.push({
+            id: newUser.id,
+            name: newUser.name,
+            points: 0,
+            level: 1,
+            avatar: newUser.avatar
+        });
+
+        if (this.save(db)) {
+            console.log(`✅ Новый пользователь создан: ${newUser.name} (${newUser.login})`);
+            return { success: true, user: newUser };
+        } else {
+            return { success: false, error: "Ошибка сохранения данных" };
+        }
+    }
+
+    // Авторизация пользователя
+    authUser(login, password) {
+        const db = this.getAll();
+        if (!db) {
+            console.error('❌ База данных не найдена при авторизации');
+            return null;
+        }
+
+        const user = db.users.find(u => 
+            u.login.toLowerCase() === login.toLowerCase() && 
+            u.password === password
+        );
+
+        if (user) {
+            // Обновляем статистику логинов
+            db.system.total_logins = (db.system.total_logins || 0) + 1;
+            
+            // Обновляем время последнего входа
+            user.last_login = new Date().toISOString();
+            
+            this.save(db);
+            
+            // Убираем пароль из возвращаемых данных
+            const { password: _, ...userWithoutPassword } = user;
+            console.log(`✅ Успешный вход: ${user.name}`);
+            return userWithoutPassword;
+        }
+
+        console.log(`❌ Неудачная попытка входа: ${login}`);
+        return null;
+    }
+
+    // Авторизация администратора
+    authAdmin(password) {
+        const db = this.getAll();
+        if (!db) return false;
+
+        return password === db.system.admin_password;
+    }
+
+    // Получить рейтинг класса
+    getClassRating(className = "7B") {
+        const db = this.getAll();
+        if (!db || !db.classes || !db.classes[className] || !db.classes[className].students) {
+            return [];
+        }
+
+        return db.classes[className].students
+            .sort((a, b) => b.points - a.points)
+            .slice(0, 10);
+    }
+
+    // ===== ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ =====
+    
+    generateAvatar(name) {
+        const names = name.split(' ').filter(n => n.length > 0);
+        if (names.length >= 2) {
+            return (names[0][0] + names[1][0]).toUpperCase();
+        }
+        if (name.length >= 2) {
+            return name.substring(0, 2).toUpperCase();
+        }
+        return "??";
+    }
+
+    // Получить статистику
+    getStats() {
+        const db = this.getAll();
+        if (!db) return null;
+
+        const regularUsers = db.users.filter(u => u.role === 'student');
+        
+        return {
+            total_users: db.users.length,
+            regular_users: regularUsers.length,
+            admin_users: db.users.filter(u => u.role === 'admin').length,
+            total_logins: db.system.total_logins || 0,
+            total_points: regularUsers.reduce((sum, user) => sum + user.points, 0)
+        };
+    }
+
+    // Сбросить базу данных (для отладки)
+    resetDatabase() {
+        localStorage.removeItem(this.dbName);
+        this.init();
+        console.log('🔄 База данных сброшена');
+    }
+}
+
+// Создаем глобальный экземпляр
+window.leoDB = new Database();

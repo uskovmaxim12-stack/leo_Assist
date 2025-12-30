@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leo Assistant - Панель ученика</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Дополнительные стили для дашборда */
+        :root {
+            --primary-rgb: 59, 130, 246;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+        
+        .priority-high { color: var(--danger); }
+        .priority-medium { color: var(--warning); }
+        .priority-low { color: var(--success); }
+        
+        .task-done { opacity: 0.6; text-decoration: line-through; }
+    </style>
+</head>
+<body>
+    <!-- Главный контейнер -->
+    <div class="dashboard">
+        <!-- Сайдбар -->
+        <aside class="dashboard-sidebar">
+            <!-- Заголовок и пользователь -->
+            <div class="sidebar-header">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">МУ</div>
+                    <div class="user-details">
+                        <h3 id="userName">Максим Усков</h3>
+                        <span class="role" id="userRole">Ученик 7Б</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Навигация -->
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-section="overview">
+                    <i class="fas fa-home"></i> Обзор
+                </a>
+                <a href="#" class="nav-item" data-section="ai-chat">
+                    <i class="fas fa-robot"></i> AI Ассистент
+                    <span class="nav-badge" id="aiUnread">0</span>
+                </a>
+                <a href="#" class="nav-item" data-section="schedule">
+                    <i class="fas fa-calendar-alt"></i> Расписание
+                </a>
+                <a href="#" class="nav-item" data-section="tasks">
+                    <i class="fas fa-tasks"></i> Задания
+                    <span class="nav-badge" id="tasksCount">3</span>
+                </a>
+                <a href="#" class="nav-item" data-section="progress">
+                    <i class="fas fa-chart-line"></i> Прогресс
+                </a>
+                <a href="#" class="nav-item" data-section="game">
+                    <i class="fas fa-gamepad"></i> Игровая зона
+                </a>
+                <a href="#" class="nav-item" data-section="rating">
+                    <i class="fas fa-trophy"></i> Рейтинг класса
+                </a>
+            </nav>
+
+            <!-- Статистика -->
+            <div class="sidebar-footer">
+                <div class="quick-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="statPoints">0</div>
+                        <div class="stat-label">Очки</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statLevel">1</div>
+                        <div class="stat-label">Уровень</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statRank">-</div>
+                        <div class="stat-label">Место</div>
+                    </div>
+                </div>
+                <button class="btn-secondary logout-btn" style="margin-top: 15px; width: 100%;">
+                    <i class="fas fa-sign-out-alt"></i> Выйти
+                </button>
+            </div>
+        </aside>
+
+        <!-- Основной контент -->
+        <main class="dashboard-main">
+            <!-- Шапка -->
+            <header class="dashboard-header">
+                <div class="header-left">
+                    <h1 id="greetingText">Добро пожаловать!</h1>
+                    <p id="currentDate">Загрузка...</p>
+                </div>
+                <div class="header-right">
+                    <button class="btn-icon" id="notificationsBtn" title="Уведомления">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge" id="notificationsCount">0</span>
+                    </button>
+                    <button class="btn-icon" id="toggleSidebar" title="Скрыть панель">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Контент (динамически меняется) -->
+            <div class="dashboard-content" id="dashboardContent">
+                <!-- По умолчанию показываем Обзор -->
+                <div class="content-section active" id="section-overview">
+                    <!-- Виджеты Обзора -->
+                    <div class="widgets-grid">
+                        <!-- AI Ассистент (мини) -->
+                        <div class="widget widget-primary">
+                            <div class="widget-header">
+                                <h3><i class="fas fa-robot"></i> Быстрый вопрос</h3>
+                            </div>
+                            <div class="widget-body">
+                                <div class="ai-quick-chat">
+                                    <input type="text" id="quickQuestion" placeholder="Спросите что-нибудь...">
+                                    <button id="askQuickBtn" class="btn-small">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                                <div id="quickAnswer" class="ai-answer"></div>
+                            </div>
+                        </div>
+
+                        <!-- Текущие задания -->
+                        <div class="widget">
+                            <div class="widget-header">
+                                <h3><i class="fas fa-tasks"></i> Ближайшие задания</h3>
+                                <a href="#" class="widget-link" data-section="tasks">Все</a>
+                            </div>
+                            <div class="widget-body">
+                                <div class="tasks-list" id="upcomingTasks">
+                                    <div class="task-item">
+                                        <div class="task-info">
+                                            <div class="task-subject">Математика</div>
+                                            <div class="task-title">Загрузка заданий...</div>
+                                        </div>
+                                        <button class="btn-small btn-complete" disabled>
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Вставьте этот код в dashboard.html в раздел "Секция Расписание" -->
+<div class="content-section" id="section-schedule">
+    <div class="widget widget-full">
+        <div class="widget-header">
+            <h3><i class="fas fa-calendar-alt"></i> Полное расписание 7Б</h3>
+            <div class="schedule-today">
+                <span>Сегодня:</span>
+                <strong id="currentDayName">--</strong>
+            </div>
+        </div>
+        <div class="widget-body">
+            <div class="schedule-container">
+                <div class="schedule-list" id="scheduleList">
+                    <!-- Расписание загрузится через JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+                        <!-- Прогресс -->
+                        <div class="widget widget-chart">
+                            <div class="widget-header">
+                                <h3><i class="fas fa-chart-line"></i> Прогресс за неделю</h3>
+                            </div>
+                            <div class="widget-body">
+                                <div class="progress-chart">
+                                    <canvas id="progressChart" width="300" height="150"></canvas>
+                                </div>
+                                <div class="chart-stats">
+                                    <div class="chart-stat">
+                                        <div class="stat-value" id="completedTasks">0</div>
+                                        <div class="stat-label">Выполнено</div>
+                                    </div>
+                                    <div class="chart-stat">
+                                        <div class="stat-value" id="pointsEarned">0</div>
+                                        <div class="stat-label">Очков</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Секция AI Чата -->
+                <div class="content-section" id="section-ai-chat">
+                    <div class="widget widget-full">
+                        <div class="widget-header">
+                            <h3><i class="fas fa-robot"></i> AI Ассистент Лео</h3>
+                            <div class="widget-actions">
+                                <button class="btn-icon" id="clearChat" title="Очистить чат">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="widget-body">
+                            <div class="ai-chat-container">
+                                <!-- История сообщений -->
+                                <div class="chat-messages" id="chatMessages">
+                                    <div class="chat-message ai-message">
+                                        <div class="chat-avatar">🤖</div>
+                                        <div class="chat-content">
+                                            <div class="chat-text">
+                                                Привет! Я Лео, твой AI помощник. Могу помочь с учебой, заданиями или просто поболтать!
+                                            </div>
+                                            <div class="chat-time">Только что</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Поле ввода -->
+                                <div class="chat-input">
+                                    <input type="text" id="chatInput" placeholder="Напишите сообщение...">
+                                    <button id="sendMessage" class="btn-primary">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Секция Рейтинга -->
+                <div class="content-section" id="section-rating">
+                    <div class="widget widget-full">
+                        <div class="widget-header">
+                            <h3><i class="fas fa-trophy"></i> Рейтинг 7Б класса</h3>
+                            <span class="user-rank">Ваше место: <strong id="userRankPosition">-</strong></span>
+                        </div>
+                        <div class="widget-body">
+                            <div class="rating-container">
+                                <!-- Топ-3 -->
+                                <div class="rating-top3">
+                                    <!-- 2 место -->
+                                    <div class="top-card second">
+                                        <div class="top-rank">2</div>
+                                        <div class="top-avatar" id="top2Avatar">АИ</div>
+                                        <div class="top-name" id="top2Name">Загрузка...</div>
+                                        <div class="top-points" id="top2Points">0 очков</div>
+                                    </div>
+                                    
+                                    <!-- 1 место -->
+                                    <div class="top-card first">
+                                        <div class="top-rank">1</div>
+                                        <div class="top-avatar" id="top1Avatar">МП</div>
+                                        <div class="top-name" id="top1Name">Загрузка...</div>
+                                        <div class="top-points" id="top1Points">0 очков</div>
+                                    </div>
+                                    
+                                    <!-- 3 место -->
+                                    <div class="top-card third">
+                                        <div class="top-rank">3</div>
+                                        <div class="top-avatar" id="top3Avatar">ДС</div>
+                                        <div class="top-name" id="top3Name">Загрузка...</div>
+                                        <div class="top-points" id="top3Points">0 очков</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Полный список -->
+                                <div class="rating-full-list">
+                                    <div class="rating-header">
+                                        <div class="header-rank">#</div>
+                                        <div class="header-name">Ученик</div>
+                                        <div class="header-points">Очки</div>
+                                        <div class="header-tasks">Задания</div>
+                                    </div>
+                                    <div class="rating-list" id="fullRatingList">
+                                        <!-- Список загрузится через JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Другие секции будут загружаться динамически -->
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/database.js"></script>
+    <script src="js/dashboard.js"></script>
+    <!-- Для графиков -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+
+</html>

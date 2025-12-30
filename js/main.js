@@ -1,6 +1,6 @@
-// js/main.js - ОПТИМИЗИРОВАННЫЙ ДЛЯ МОБИЛЬНЫХ
+// js/main.js - ОБНОВЛЕННАЯ ЛОГИКА С КЛИКАБЕЛЬНЫМИ КНОПКАМИ
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('📱 Leo Assistant загружен (мобильная версия)');
+    console.log('🎯 Leo Assistant загружен (кликабельные кнопки)');
     
     // ========== ОПТИМИЗАЦИЯ ДЛЯ МОБИЛЬНЫХ ==========
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -9,44 +9,28 @@ document.addEventListener('DOMContentLoaded', function() {
     if (isMobile || isTouchDevice) {
         document.body.classList.add('touch-device');
         console.log('📱 Устройство с сенсорным экраном');
-        
-        // Оптимизация для касаний
-        document.querySelectorAll('input, button').forEach(element => {
-            element.style.fontSize = '16px'; // Предотвращаем зумирование на iOS
-        });
     }
     
-    // ========== ПАНЕЛЬ ВЫБОРА РЕЖИМА ==========
+    // ========== ПАНЕЛЬ ВЫБОРА РЕЖИМА - ИСПРАВЛЕНА КЛИКАБЕЛЬНОСТЬ ==========
     const modeButtons = document.querySelectorAll('.mode-btn');
+    let currentMode = 'login';
     
-    modeButtons.forEach(button => {
-        // Для мобильных используем touchend, для десктопа - click
-        const eventType = isTouchDevice ? 'touchend' : 'click';
-        
-        button.addEventListener(eventType, function(e) {
-            if (isTouchDevice) {
-                e.preventDefault(); // Предотвращаем двойное срабатывание
-            }
-            
-            const target = this.getAttribute('data-target');
-            switchForm(target);
-            
-            // Вибрация на мобильных (если поддерживается)
-            if (isTouchDevice && navigator.vibrate) {
-                navigator.vibrate(10);
-            }
-        });
-    });
-    
-    // Функция переключения формы
+    // Функция для переключения форм
     function switchForm(target) {
-        // Убираем активный класс
+        if (currentMode === target) return;
+        
+        currentMode = target;
+        
+        // Убираем активный класс со всех кнопок
         modeButtons.forEach(btn => {
             btn.classList.remove('active');
         });
         
         // Добавляем активный класс текущей кнопке
-        document.querySelector(`.mode-btn[data-target="${target}"]`).classList.add('active');
+        const activeBtn = document.querySelector(`.mode-btn[data-target="${target}"]`);
+        if (activeBtn) {
+            activeBtn.classList.add('active');
+        }
         
         // Скрываем все формы
         document.querySelectorAll('.form').forEach(form => {
@@ -57,33 +41,73 @@ document.addEventListener('DOMContentLoaded', function() {
         const targetForm = document.getElementById(target + 'Form');
         if (targetForm) {
             targetForm.classList.add('active');
-            currentMode = target;
             
-            // Плавная прокрутка к форме на мобильных
-            if (window.innerWidth < 768) {
-                setTimeout(() => {
-                    targetForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }, 300);
-            }
+            // Анимация появления
+            targetForm.style.animation = 'none';
+            setTimeout(() => {
+                targetForm.style.animation = 'fadeInUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            }, 10);
+            
+            // Фокус на первое поле
+            setTimeout(() => {
+                const firstInput = targetForm.querySelector('input');
+                if (firstInput) {
+                    firstInput.focus();
+                }
+            }, 300);
+        }
+        
+        // Вибрация на мобильных (если поддерживается)
+        if (isTouchDevice && navigator.vibrate) {
+            navigator.vibrate(15);
         }
     }
+    
+    // Обработчики для кнопок выбора режима
+    modeButtons.forEach(button => {
+        // Для надежности добавляем оба обработчика
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const target = this.getAttribute('data-target');
+            switchForm(target);
+        });
+        
+        button.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+        
+        button.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const target = this.getAttribute('data-target');
+            switchForm(target);
+        });
+        
+        // Клавиатурная навигация
+        button.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                const target = this.getAttribute('data-target');
+                switchForm(target);
+            }
+        });
+    });
     
     // ========== ВХОД В СИСТЕМУ ==========
     const loginBtn = document.getElementById('loginBtn');
     if (loginBtn) {
-        const eventType = isTouchDevice ? 'touchend' : 'click';
-        loginBtn.addEventListener(eventType, handleLogin);
+        loginBtn.addEventListener('click', handleLogin);
         
-        // Автовход по Enter
+        // Автовход по Enter в форме входа
         document.getElementById('loginPassword')?.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') handleLogin();
         });
     }
     
     function handleLogin(e) {
-        if (isTouchDevice && e) {
-            e.preventDefault();
-        }
+        if (e) e.preventDefault();
         
         const login = document.getElementById('loginUsername')?.value.trim();
         const password = document.getElementById('loginPassword')?.value.trim();
@@ -99,16 +123,13 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.innerHTML = '<div class="loading-spinner"></div>';
         btn.disabled = true;
         
-        // Оптимизированная задержка для мобильных
-        const delay = isMobile ? 600 : 800;
-        
         setTimeout(() => {
             const user = leoDB.authUser(login, password);
             
             if (user) {
                 showNotification(`Добро пожаловать, ${user.name}!`, 'success');
                 
-                btn.innerHTML = '<i class="fas fa-check"></i>';
+                btn.innerHTML = '<i class="fas fa-check"></i> Успешно!';
                 btn.style.background = 'linear-gradient(135deg, #10b981 0%, #34d399 100%)';
                 
                 setTimeout(() => {
@@ -123,25 +144,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Анимация ошибки
                 const form = document.getElementById('loginForm');
-                form.style.animation = 'shake 0.5s ease';
+                form.style.animation = 'none';
                 setTimeout(() => {
-                    form.style.animation = '';
-                }, 500);
+                    form.style.animation = 'shake 0.5s ease';
+                    setTimeout(() => {
+                        form.style.animation = '';
+                    }, 500);
+                }, 10);
             }
-        }, delay);
+        }, 800);
     }
     
     // ========== РЕГИСТРАЦИЯ ==========
     const registerBtn = document.getElementById('registerBtn');
     if (registerBtn) {
-        const eventType = isTouchDevice ? 'touchend' : 'click';
-        registerBtn.addEventListener(eventType, handleRegister);
+        registerBtn.addEventListener('click', handleRegister);
     }
     
     function handleRegister(e) {
-        if (isTouchDevice && e) {
-            e.preventDefault();
-        }
+        if (e) e.preventDefault();
         
         const login = document.getElementById('regLogin')?.value.trim();
         const name = document.getElementById('regName')?.value.trim();
@@ -184,7 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (result.success) {
                 showNotification(`Аккаунт успешно создан для ${name}!`, 'success');
                 
-                btn.innerHTML = '<i class="fas fa-check"></i>';
+                btn.innerHTML = '<i class="fas fa-check"></i> Создан!';
                 btn.style.background = 'linear-gradient(135deg, #10b981 0%, #34d399 100%)';
                 
                 setTimeout(() => {
@@ -201,10 +222,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 showNotification(result.error || 'Ошибка регистрации', 'error');
                 
                 const form = document.getElementById('registerForm');
-                form.style.animation = 'shake 0.5s ease';
+                form.style.animation = 'none';
                 setTimeout(() => {
-                    form.style.animation = '';
-                }, 500);
+                    form.style.animation = 'shake 0.5s ease';
+                    setTimeout(() => {
+                        form.style.animation = '';
+                    }, 500);
+                }, 10);
             }
         }, 1000);
     }
@@ -212,14 +236,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // ========== ВХОД АДМИНИСТРАТОРА ==========
     const adminBtn = document.getElementById('adminBtn');
     if (adminBtn) {
-        const eventType = isTouchDevice ? 'touchend' : 'click';
-        adminBtn.addEventListener(eventType, handleAdminLogin);
+        adminBtn.addEventListener('click', handleAdminLogin);
     }
     
     function handleAdminLogin(e) {
-        if (isTouchDevice && e) {
-            e.preventDefault();
-        }
+        if (e) e.preventDefault();
         
         const password = document.getElementById('adminPassword')?.value.trim();
         
@@ -240,7 +261,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (password === adminPassword) {
                 showNotification('Доступ разрешен. Вход как администратор', 'success');
                 
-                btn.innerHTML = '<i class="fas fa-check"></i>';
+                btn.innerHTML = '<i class="fas fa-check"></i> Доступ разрешен!';
                 btn.style.background = 'linear-gradient(135deg, #10b981 0%, #34d399 100%)';
                 
                 setTimeout(() => {
@@ -254,10 +275,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 showNotification('Неверный пароль администратора', 'error');
                 
                 const form = document.getElementById('adminForm');
-                form.style.animation = 'shake 0.5s ease';
+                form.style.animation = 'none';
                 setTimeout(() => {
-                    form.style.animation = '';
-                }, 500);
+                    form.style.animation = 'shake 0.5s ease';
+                    setTimeout(() => {
+                        form.style.animation = '';
+                    }, 500);
+                }, 10);
             }
         }, 800);
     }
@@ -279,7 +303,6 @@ document.addEventListener('DOMContentLoaded', function() {
             </button>
         `;
         
-        // Стили для мобильных
         const isSmallScreen = window.innerWidth < 768;
         notification.style.cssText = `
             position: fixed;
@@ -304,7 +327,7 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => notification.remove(), 400);
         });
         
-        // Автозакрытие через 4 секунды на мобильных, 5 на десктопе
+        // Автозакрытие
         const autoCloseTime = isMobile ? 4000 : 5000;
         setTimeout(() => {
             if (notification.parentNode) {
@@ -318,10 +341,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function getNotificationColor(type) {
         const colors = {
-            'success': 'linear-gradient(135deg, rgba(16, 185, 129, 0.9) 0%, rgba(52, 211, 153, 0.9) 100%)',
-            'error': 'linear-gradient(135deg, rgba(239, 68, 68, 0.9) 0%, rgba(248, 113, 113, 0.9) 100%)',
-            'warning': 'linear-gradient(135deg, rgba(245, 158, 11, 0.9) 0%, rgba(251, 191, 36, 0.9) 100%)',
-            'info': 'linear-gradient(135deg, rgba(59, 130, 246, 0.9) 0%, rgba(96, 165, 250, 0.9) 100%)'
+            'success': 'linear-gradient(135deg, rgba(16, 185, 129, 0.95) 0%, rgba(52, 211, 153, 0.95) 100%)',
+            'error': 'linear-gradient(135deg, rgba(239, 68, 68, 0.95) 0%, rgba(248, 113, 113, 0.95) 100%)',
+            'warning': 'linear-gradient(135deg, rgba(245, 158, 11, 0.95) 0%, rgba(251, 191, 36, 0.95) 100%)',
+            'info': 'linear-gradient(135deg, rgba(59, 130, 246, 0.95) 0%, rgba(96, 165, 250, 0.95) 100%)'
         };
         return colors[type] || colors.info;
     }
@@ -379,65 +402,60 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        /* Стили для мобильных */
-        .touch-device .auth-btn {
-            min-height: 56px;
+        /* Улучшение доступности */
+        .mode-btn:focus,
+        .auth-btn:focus {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
         }
         
-        .touch-device .mode-btn {
-            cursor: default;
+        /* Предотвращение выделения текста */
+        .mode-btn,
+        .auth-btn {
+            user-select: none;
         }
         
-        .touch-device input {
-            font-size: 16px !important;
-        }
-        
-        /* Предотвращение зума на iOS */
-        @media screen and (-webkit-min-device-pixel-ratio:0) {
-            select,
-            textarea,
-            input {
-                font-size: 16px !important;
+        /* Улучшение для мобильных */
+        @media (max-width: 768px) {
+            .mode-btn:active,
+            .auth-btn:active {
+                transform: scale(0.97);
+                transition: transform 0.1s;
             }
         }
     `;
     document.head.appendChild(style);
     
-    // ========== КЛАВИАТУРА ДЛЯ МОБИЛЬНЫХ ==========
-    if (isMobile) {
-        // Фокус на первое поле при выборе формы
-        modeButtons.forEach(btn => {
-            btn.addEventListener('touchend', function() {
-                setTimeout(() => {
-                    const target = this.getAttribute('data-target');
-                    const form = document.getElementById(target + 'Form');
-                    const firstInput = form?.querySelector('input');
-                    if (firstInput) {
-                        firstInput.focus({ preventScroll: true });
-                    }
-                }, 300);
-            });
-        });
-        
-        // Скрытие клавиатуры по тапу вне инпутов
-        document.addEventListener('touchend', function(e) {
-            if (!e.target.matches('input, textarea, button, .mode-btn')) {
-                document.activeElement?.blur();
-            }
-        });
-    }
-    
-    // ========== ПРЕДУПРЕЖДЕНИЕ О ПУСТОЙ БАЗЕ ==========
-    console.log('ℹ️ База данных пользователей пуста. Новые пользователи будут добавляться при регистрации.');
-    
-    // ========== ОПТИМИЗАЦИЯ ПРОИЗВОДИТЕЛЬНОСТИ ==========
-    let lastTap = 0;
-    document.addEventListener('touchend', function(e) {
-        const currentTime = new Date().getTime();
-        const tapLength = currentTime - lastTap;
-        if (tapLength < 500 && tapLength > 0) {
-            e.preventDefault(); // Предотвращаем двойной тап
+    // ========== УЛУЧШЕНИЕ ДОСТУПНОСТИ ==========
+    // Фокус на первую кнопку при загрузке
+    setTimeout(() => {
+        const firstBtn = document.querySelector('.mode-btn.active');
+        if (firstBtn) {
+            firstBtn.focus();
         }
-        lastTap = currentTime;
-    }, false);
+    }, 100);
+    
+    // Навигация стрелками
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+            const currentIndex = Array.from(modeButtons).findIndex(btn => 
+                btn.classList.contains('active')
+            );
+            
+            let nextIndex;
+            if (e.key === 'ArrowRight') {
+                nextIndex = (currentIndex + 1) % modeButtons.length;
+            } else {
+                nextIndex = (currentIndex - 1 + modeButtons.length) % modeButtons.length;
+            }
+            
+            const target = modeButtons[nextIndex].getAttribute('data-target');
+            switchForm(target);
+            modeButtons[nextIndex].focus();
+        }
+    });
+    
+    // ========== ОТЛАДОЧНАЯ ИНФОРМАЦИЯ ==========
+    console.log('✅ Кнопки переключения форм активированы и кликабельны');
+    console.log('🎨 Фичи красиво оформлены с иконками в кружках');
 });

@@ -107,6 +107,7 @@
             margin-bottom: clamp(30px, 6vw, 50px);
         }
         
+        /* ИСПРАВЛЕННЫЙ ЛОГОТИП РОБОТА */
         .logo-icon {
             font-size: clamp(60px, 12vw, 90px);
             animation: float 6s ease-in-out infinite;
@@ -115,6 +116,8 @@
             -webkit-text-fill-color: transparent;
             filter: drop-shadow(0 10px 20px rgba(59, 130, 246, 0.4));
             line-height: 1;
+            display: inline-block;
+            text-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
         }
         
         .logo-text {
@@ -137,7 +140,7 @@
             max-width: min(500px, 100%);
         }
         
-        /* Панель выбора типа входа - ИСПРАВЛЕННАЯ */
+        /* Панель выбора типа входа - ИСПРАВЛЕНА КЛИКАБЕЛЬНОСТЬ */
         .auth-mode-selector {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -264,7 +267,7 @@
             color: var(--text);
         }
         
-        /* Иконки в кнопках - ИСПРАВЛЕНО */
+        /* Иконки в кнопках */
         .mode-icon {
             position: relative;
             width: 60px;
@@ -305,7 +308,7 @@
             pointer-events: none;
         }
         
-        /* ФИЧИ - ПЕРЕРАБОТАННЫЕ */
+        /* ФИЧИ */
         .features {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -513,7 +516,7 @@
             transform: translateY(-50%) scale(1.2);
         }
         
-        /* Кнопки входа - УЛУЧШЕННЫЕ */
+        /* Кнопки входа */
         .auth-btn {
             width: 100%;
             padding: clamp(20px, 4vw, 24px);
@@ -640,11 +643,6 @@
                 box-shadow: 0 0 40px rgba(217, 70, 239, 0.9);
                 transform: scale(1.05);
             }
-        }
-        
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
         }
         
         /* Адаптивность для мобильных */
@@ -827,54 +825,6 @@
             }
         }
         
-        /* Для ориентации телефона */
-        @media (max-height: 600px) and (orientation: landscape) {
-            .container {
-                align-items: flex-start;
-                padding-top: 20px;
-            }
-            
-            .main-content {
-                grid-template-columns: 1fr 1fr;
-                gap: 30px;
-            }
-            
-            .logo {
-                margin-bottom: 20px;
-            }
-            
-            .tagline {
-                margin-bottom: 20px;
-            }
-            
-            .auth-mode-selector {
-                margin-bottom: 20px;
-            }
-            
-            .features {
-                margin-top: 20px;
-            }
-        }
-        
-        /* Улучшение доступности для касаний */
-        @media (hover: none) and (pointer: coarse) {
-            .mode-btn:hover,
-            .feature:hover,
-            .auth-btn:hover {
-                transform: none;
-            }
-            
-            .mode-btn:active,
-            .feature:active,
-            .auth-btn:active {
-                transform: scale(0.97);
-            }
-            
-            .mode-btn.active {
-                transform: scale(0.97);
-            }
-        }
-        
         /* Анимации загрузки */
         .loading-spinner {
             display: inline-block;
@@ -901,12 +851,13 @@
             <!-- Герой-секция -->
             <div class="hero-section">
                 <div class="logo">
+                    <!-- ИСПРАВЛЕННЫЙ ЭМОДЗИ РОБОТА -->
                     <div class="logo-icon">🤖</div>
                     <h1 class="logo-text">Leo Assistant</h1>
                 </div>
                 <p class="tagline">Персональный AI-помощник для учебного процесса 7Б класса. Умная система обучения с геймификацией и прогрессивной аналитикой.</p>
                 
-                <!-- Панель выбора типа входа - ТЕПЕРЬ КЛИКАБЕЛЬНА -->
+                <!-- Панель выбора типа входа - ТЕПЕРЬ РАБОТАЕТ -->
                 <div class="auth-mode-selector">
                     <button class="mode-btn active" data-target="login" tabindex="0">
                         <div class="mode-icon">
@@ -918,7 +869,7 @@
                         <div class="mode-icon">
                             <i class="fas fa-user-plus"></i>
                         </div>
-                        <span>Новый аккаунт</span>
+                        <span>Создать аккаунт</span>
                         <div class="new-badge">NEW</div>
                     </button>
                     <button class="mode-btn" data-target="admin" tabindex="0">
@@ -929,7 +880,7 @@
                     </button>
                 </div>
 
-                <!-- ФИЧИ - КРАСИВО ОФОРМЛЕННЫЕ -->
+                <!-- ФИЧИ -->
                 <div class="features">
                     <div class="feature">
                         <div class="feature-icon">
@@ -1037,7 +988,6 @@
 
     <!-- JavaScript -->
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <script src="js/particles-config.js"></script>
     <script src="js/database.js"></script>
     <script src="js/main.js"></script>
     

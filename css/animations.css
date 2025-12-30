@@ -1,148 +1,175 @@
-/* animations.css - ДОПОЛНИТЕЛЬНЫЕ АНИМАЦИИ */
+/* Добавляем в конец файла css/animations.css */
 
-/* Анимация входа уведомлений */
-.notification {
-    animation: slideIn 0.3s ease;
+/* Анимации для админ-панели */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.notification.slide-out {
-    animation: slideOut 0.3s ease;
+@keyframes slideOutDown {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(30px);
+    }
 }
 
-/* Анимация нажатия кнопок */
-.btn-primary, .btn-admin {
-    position: relative;
-    overflow: hidden;
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
-.btn-primary::after, .btn-admin::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.2);
-    transform: translate(-50%, -50%);
-    transition: width 0.6s, height 0.6s;
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
 }
 
-.btn-primary:hover::after, .btn-admin:hover::after {
-    width: 300px;
-    height: 300px;
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
-/* Анимация ввода в поля */
-.input-group input:focus {
-    animation: inputFocus 0.3s ease;
+@keyframes slideOutLeft {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
 }
 
-@keyframes inputFocus {
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+}
+
+/* Анимация для статуса AI */
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 0 5px var(--admin-warning);
+    }
+    50% {
+        box-shadow: 0 0 20px var(--admin-warning);
+    }
+}
+
+/* Анимация для кнопок */
+@keyframes button-pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+/* Анимация для уведомлений */
+@keyframes notification-shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-5px);
+    }
+    20%, 40%, 60%, 80% {
+        transform: translateX(5px);
+    }
+}
+
+/* Анимация для загрузки */
+@keyframes loading-dots {
+    0%, 20% {
+        content: ".";
+    }
+    40% {
+        content: "..";
+    }
+    60%, 100% {
+        content: "...";
+    }
+}
+
+/* Анимация для таблиц */
+@keyframes table-row-highlight {
     0% {
-        box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.2);
+        background-color: rgba(59, 130, 246, 0.1);
     }
     100% {
-        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+        background-color: transparent;
     }
 }
 
-/* Анимация переключения форм */
-.form {
-    animation: formSwitch 0.5s ease;
+/* Классы для анимаций */
+.animate-fade-in {
+    animation: fadeIn 0.3s ease;
 }
 
-@keyframes formSwitch {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.animate-slide-in-up {
+    animation: slideInUp 0.4s ease;
 }
 
-/* Анимация логотипа */
-.logo-icon {
-    animation: logoBounce 3s ease-in-out infinite;
+.animate-slide-in-right {
+    animation: slideInRight 0.4s ease;
 }
 
-@keyframes logoBounce {
-    0%, 100% {
-        transform: scale(1) rotate(0deg);
-    }
-    25% {
-        transform: scale(1.1) rotate(5deg);
-    }
-    75% {
-        transform: scale(1.1) rotate(-5deg);
-    }
+.animate-slide-in-left {
+    animation: slideInLeft 0.4s ease;
 }
 
-/* Анимация фона */
-.container::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-        radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 40% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: 0;
-    animation: backgroundMove 20s ease-in-out infinite;
+.animate-pulse-glow {
+    animation: pulse-glow 2s infinite;
 }
 
-@keyframes backgroundMove {
-    0%, 100% {
-        transform: translate(0, 0);
-    }
-    25% {
-        transform: translate(-10px, 10px);
-    }
-    50% {
-        transform: translate(10px, -10px);
-    }
-    75% {
-        transform: translate(-10px, -10px);
-    }
+.animate-button-pulse {
+    animation: button-pulse 0.5s ease;
 }
 
-/* Анимация появления фич */
-.feature {
-    opacity: 0;
-    animation: featureAppear 0.6s ease forwards;
+.animate-notification-shake {
+    animation: notification-shake 0.5s ease;
 }
 
-.feature:nth-child(1) { animation-delay: 0.2s; }
-.feature:nth-child(2) { animation-delay: 0.4s; }
-.feature:nth-child(3) { animation-delay: 0.6s; }
-
-@keyframes featureAppear {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Эффект свечения для активных элементов */
-.input-group:focus-within i {
-    animation: iconGlow 1s ease-in-out infinite;
-}
-
-@keyframes iconGlow {
-    0%, 100% {
-        filter: drop-shadow(0 0 5px currentColor);
-    }
-    50% {
-        filter: drop-shadow(0 0 10px currentColor);
-    }
+.table-row-highlight {
+    animation: table-row-highlight 2s ease;
 }

@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Дополнительные стили для дашборда */
         :root {
             --primary-rgb: 59, 130, 246;
             --success: #10b981;
@@ -21,6 +20,58 @@
         .priority-low { color: var(--success); }
         
         .task-done { opacity: 0.6; text-decoration: line-through; }
+        
+        /* Стили для навигации */
+        .system-navigation {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+            background: var(--card-bg);
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .nav-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--background);
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(var(--primary-rgb), 0.1);
+            border-color: var(--primary);
+        }
+        
+        .nav-btn.admin {
+            background: rgba(217, 70, 239, 0.1);
+            border-color: #d946ef;
+        }
+        
+        .nav-btn.admin:hover {
+            background: rgba(217, 70, 239, 0.2);
+        }
+        
+        .nav-btn.logout {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #ef4444;
+        }
+        
+        .nav-btn.logout:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -28,7 +79,6 @@
     <div class="dashboard">
         <!-- Сайдбар -->
         <aside class="dashboard-sidebar">
-            <!-- Заголовок и пользователь -->
             <div class="sidebar-header">
                 <div class="user-info">
                     <div class="user-avatar" id="userAvatar">МУ</div>
@@ -39,7 +89,6 @@
                 </div>
             </div>
 
-            <!-- Навигация -->
             <nav class="sidebar-nav">
                 <a href="#" class="nav-item active" data-section="overview">
                     <i class="fas fa-home"></i> Обзор
@@ -66,7 +115,6 @@
                 </a>
             </nav>
 
-            <!-- Статистика -->
             <div class="sidebar-footer">
                 <div class="quick-stats">
                     <div class="stat-item">
@@ -82,15 +130,11 @@
                         <div class="stat-label">Место</div>
                     </div>
                 </div>
-                <button class="btn-secondary logout-btn" style="margin-top: 15px; width: 100%;">
-                    <i class="fas fa-sign-out-alt"></i> Выйти
-                </button>
             </div>
         </aside>
 
         <!-- Основной контент -->
         <main class="dashboard-main">
-            <!-- Шапка -->
             <header class="dashboard-header">
                 <div class="header-left">
                     <h1 id="greetingText">Добро пожаловать!</h1>
@@ -107,13 +151,11 @@
                 </div>
             </header>
 
-            <!-- Контент (динамически меняется) -->
             <div class="dashboard-content" id="dashboardContent">
-                <!-- По умолчанию показываем Обзор -->
+                <!-- Секция Обзор -->
                 <div class="content-section active" id="section-overview">
-                    <!-- Виджеты Обзора -->
                     <div class="widgets-grid">
-                        <!-- AI Ассистент (мини) -->
+                        <!-- AI Ассистент -->
                         <div class="widget widget-primary">
                             <div class="widget-header">
                                 <h3><i class="fas fa-robot"></i> Быстрый вопрос</h3>
@@ -150,25 +192,23 @@
                             </div>
                         </div>
 
-                        <!-- Вставьте этот код в dashboard.html в раздел "Секция Расписание" -->
-<div class="content-section" id="section-schedule">
-    <div class="widget widget-full">
-        <div class="widget-header">
-            <h3><i class="fas fa-calendar-alt"></i> Полное расписание 7Б</h3>
-            <div class="schedule-today">
-                <span>Сегодня:</span>
-                <strong id="currentDayName">--</strong>
-            </div>
-        </div>
-        <div class="widget-body">
-            <div class="schedule-container">
-                <div class="schedule-list" id="scheduleList">
-                    <!-- Расписание загрузится через JS -->
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+                        <!-- Расписание сегодня -->
+                        <div class="widget">
+                            <div class="widget-header">
+                                <h3><i class="fas fa-calendar-day"></i> Сегодня</h3>
+                            </div>
+                            <div class="widget-body">
+                                <div class="today-schedule" id="todaySchedule">
+                                    <div class="schedule-item">
+                                        <div class="lesson-time">9:00</div>
+                                        <div class="lesson-info">
+                                            <div class="lesson-name">Загрузка...</div>
+                                            <div class="lesson-room">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         <!-- Прогресс -->
                         <div class="widget widget-chart">
@@ -207,7 +247,6 @@
                         </div>
                         <div class="widget-body">
                             <div class="ai-chat-container">
-                                <!-- История сообщений -->
                                 <div class="chat-messages" id="chatMessages">
                                     <div class="chat-message ai-message">
                                         <div class="chat-avatar">🤖</div>
@@ -220,7 +259,6 @@
                                     </div>
                                 </div>
                                 
-                                <!-- Поле ввода -->
                                 <div class="chat-input">
                                     <input type="text" id="chatInput" placeholder="Напишите сообщение...">
                                     <button id="sendMessage" class="btn-primary">
@@ -241,7 +279,6 @@
                         </div>
                         <div class="widget-body">
                             <div class="rating-container">
-                                <!-- Топ-3 -->
                                 <div class="rating-top3">
                                     <!-- 2 место -->
                                     <div class="top-card second">
@@ -268,7 +305,6 @@
                                     </div>
                                 </div>
                                 
-                                <!-- Полный список -->
                                 <div class="rating-full-list">
                                     <div class="rating-header">
                                         <div class="header-rank">#</div>
@@ -285,16 +321,51 @@
                     </div>
                 </div>
 
-                <!-- Другие секции будут загружаться динамически -->
+                <!-- Другие секции будут аналогично -->
             </div>
         </main>
+    </div>
+
+    <!-- Системная навигация -->
+    <div class="system-navigation">
+        <button class="nav-btn" onclick="window.location.href='index.html'">
+            <i class="fas fa-home"></i> Главная
+        </button>
+        <button class="nav-btn admin" onclick="goToAdmin()">
+            <i class="fas fa-shield-alt"></i> Админ-панель
+        </button>
+        <button class="nav-btn logout" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i> Выйти
+        </button>
     </div>
 
     <!-- JavaScript -->
     <script src="js/database.js"></script>
     <script src="js/dashboard.js"></script>
-    <!-- Для графиков -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        function goToAdmin() {
+            const user = JSON.parse(localStorage.getItem('current_user') || '{}');
+            if (user.role === 'admin') {
+                localStorage.setItem('is_admin', 'true');
+                window.location.href = 'admin.html';
+            } else {
+                const password = prompt('Введите пароль администратора:');
+                if (password === 'admin123') {
+                    localStorage.setItem('is_admin', 'true');
+                    window.location.href = 'admin.html';
+                } else {
+                    alert('Неверный пароль!');
+                }
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('current_user');
+            localStorage.removeItem('is_admin');
+            window.location.href = 'index.html';
+        }
+    </script>
 </body>
-
 </html>

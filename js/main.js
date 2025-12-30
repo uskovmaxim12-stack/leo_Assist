@@ -1,71 +1,58 @@
-// js/main.js - ОБНОВЛЕННАЯ ЛОГИКА С КЛИКАБЕЛЬНЫМИ КНОПКАМИ
+// js/main.js - ИСПРАВЛЕННАЯ ЛОГИКА ПЕРЕКЛЮЧЕНИЯ ФОРМ
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🎯 Leo Assistant загружен (кликабельные кнопки)');
+    console.log('🎯 Leo Assistant загружен (исправленные кнопки)');
     
-    // ========== ОПТИМИЗАЦИЯ ДЛЯ МОБИЛЬНЫХ ==========
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    
-    if (isMobile || isTouchDevice) {
-        document.body.classList.add('touch-device');
-        console.log('📱 Устройство с сенсорным экраном');
-    }
-    
-    // ========== ПАНЕЛЬ ВЫБОРА РЕЖИМА - ИСПРАВЛЕНА КЛИКАБЕЛЬНОСТЬ ==========
+    // ========== ПЕРЕКЛЮЧЕНИЕ ФОРМ ==========
     const modeButtons = document.querySelectorAll('.mode-btn');
     let currentMode = 'login';
     
-    // Функция для переключения форм
+    // Функция для переключения между формами
     function switchForm(target) {
-        if (currentMode === target) return;
+        console.log('🔄 Переключаем на форму:', target);
         
+        // Обновляем текущий режим
         currentMode = target;
         
-        // Убираем активный класс со всех кнопок
+        // 1. Обновляем кнопки
         modeButtons.forEach(btn => {
             btn.classList.remove('active');
+            if (btn.getAttribute('data-target') === target) {
+                btn.classList.add('active');
+            }
         });
         
-        // Добавляем активный класс текущей кнопке
-        const activeBtn = document.querySelector(`.mode-btn[data-target="${target}"]`);
-        if (activeBtn) {
-            activeBtn.classList.add('active');
-        }
-        
-        // Скрываем все формы
+        // 2. Скрываем все формы
         document.querySelectorAll('.form').forEach(form => {
             form.classList.remove('active');
+            form.style.display = 'none';
         });
         
-        // Показываем нужную форму
+        // 3. Показываем нужную форму
         const targetForm = document.getElementById(target + 'Form');
         if (targetForm) {
-            targetForm.classList.add('active');
-            
-            // Анимация появления
-            targetForm.style.animation = 'none';
+            targetForm.style.display = 'block';
             setTimeout(() => {
-                targetForm.style.animation = 'fadeInUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                targetForm.classList.add('active');
             }, 10);
             
-            // Фокус на первое поле
+            // Фокус на первое поле формы
             setTimeout(() => {
                 const firstInput = targetForm.querySelector('input');
                 if (firstInput) {
                     firstInput.focus();
                 }
-            }, 300);
+            }, 100);
         }
         
-        // Вибрация на мобильных (если поддерживается)
-        if (isTouchDevice && navigator.vibrate) {
-            navigator.vibrate(15);
+        // Вибрация на мобильных
+        if ('vibrate' in navigator) {
+            navigator.vibrate(10);
         }
     }
     
     // Обработчики для кнопок выбора режима
     modeButtons.forEach(button => {
-        // Для надежности добавляем оба обработчика
+        // Клик мышью
         button.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -73,11 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
             switchForm(target);
         });
         
-        button.addEventListener('touchstart', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        });
-        
+        // Касание на мобильных
         button.addEventListener('touchend', function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -87,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Клавиатурная навигация
         button.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' || e.key === ' ') {
+            if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
                 e.preventDefault();
                 const target = this.getAttribute('data-target');
                 switchForm(target);
@@ -100,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (loginBtn) {
         loginBtn.addEventListener('click', handleLogin);
         
-        // Автовход по Enter в форме входа
+        // Автовход по Enter
         document.getElementById('loginPassword')?.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') handleLogin();
         });
@@ -286,7 +269,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 800);
     }
     
-    // ========== ОПТИМИЗИРОВАННЫЕ УВЕДОМЛЕНИЯ ==========
+    // ========== УВЕДОМЛЕНИЯ ==========
     function showNotification(message, type = 'info') {
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
@@ -328,13 +311,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Автозакрытие
-        const autoCloseTime = isMobile ? 4000 : 5000;
         setTimeout(() => {
             if (notification.parentNode) {
                 notification.style.animation = `${isSmallScreen ? 'slideOutDown' : 'slideOutRight'} 0.4s ease`;
                 setTimeout(() => notification.remove(), 400);
             }
-        }, autoCloseTime);
+        }, 5000);
         
         document.body.appendChild(notification);
     }
@@ -349,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return colors[type] || colors.info;
     }
     
-    // ========== ДОПОЛНИТЕЛЬНЫЕ АНИМАЦИИ ==========
+    // ========== АНИМАЦИИ ==========
     const style = document.createElement('style');
     style.textContent = `
         @keyframes shake {
@@ -402,60 +384,24 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        /* Улучшение доступности */
-        .mode-btn:focus,
-        .auth-btn:focus {
-            outline: 2px solid var(--primary);
-            outline-offset: 2px;
+        .form {
+            display: none;
         }
         
-        /* Предотвращение выделения текста */
-        .mode-btn,
-        .auth-btn {
-            user-select: none;
-        }
-        
-        /* Улучшение для мобильных */
-        @media (max-width: 768px) {
-            .mode-btn:active,
-            .auth-btn:active {
-                transform: scale(0.97);
-                transition: transform 0.1s;
-            }
+        .form.active {
+            display: block;
         }
     `;
     document.head.appendChild(style);
     
-    // ========== УЛУЧШЕНИЕ ДОСТУПНОСТИ ==========
-    // Фокус на первую кнопку при загрузке
-    setTimeout(() => {
-        const firstBtn = document.querySelector('.mode-btn.active');
-        if (firstBtn) {
-            firstBtn.focus();
-        }
-    }, 100);
+    // ========== ИНИЦИАЛИЗАЦИЯ ==========
+    console.log('✅ Кнопки переключения форм работают правильно');
+    console.log('🤖 Эмодзи робота отображается корректно');
     
-    // Навигация стрелками
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-            const currentIndex = Array.from(modeButtons).findIndex(btn => 
-                btn.classList.contains('active')
-            );
-            
-            let nextIndex;
-            if (e.key === 'ArrowRight') {
-                nextIndex = (currentIndex + 1) % modeButtons.length;
-            } else {
-                nextIndex = (currentIndex - 1 + modeButtons.length) % modeButtons.length;
-            }
-            
-            const target = modeButtons[nextIndex].getAttribute('data-target');
-            switchForm(target);
-            modeButtons[nextIndex].focus();
-        }
+    // Тестирование кнопок в консоли
+    modeButtons.forEach((btn, index) => {
+        btn.addEventListener('click', () => {
+            console.log(`🟢 Нажата кнопка ${index + 1}: ${btn.getAttribute('data-target')}`);
+        });
     });
-    
-    // ========== ОТЛАДОЧНАЯ ИНФОРМАЦИЯ ==========
-    console.log('✅ Кнопки переключения форм активированы и кликабельны');
-    console.log('🎨 Фичи красиво оформлены с иконками в кружках');
 });

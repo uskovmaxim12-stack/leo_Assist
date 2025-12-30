@@ -19,20 +19,21 @@
             --gradient-1: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
             --gradient-2: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
             --gradient-3: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);
-            --gradient-glass: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            --gradient-glass: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+            --gradient-feature: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.1) 100%);
             --background: #0f172a;
             --card-bg: #1e293b;
-            --card-glass: rgba(30, 41, 59, 0.9);
+            --card-glass: rgba(30, 41, 59, 0.95);
             --text: #f1f5f9;
             --text-muted: #94a3b8;
             --border: #334155;
-            --border-glow: rgba(59, 130, 246, 0.4);
+            --border-glow: rgba(59, 130, 246, 0.6);
             --success: #10b981;
             --danger: #ef4444;
             --warning: #f59e0b;
-            --glow: 0 0 40px rgba(59, 130, 246, 0.3);
-            --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.4);
-            --shadow-sm: 0 10px 30px rgba(0, 0, 0, 0.2);
+            --glow: 0 0 50px rgba(59, 130, 246, 0.4);
+            --shadow-lg: 0 25px 70px rgba(0, 0, 0, 0.5);
+            --shadow-feature: 0 15px 40px rgba(59, 130, 246, 0.2);
         }
         
         /* Сброс и базовые стили */
@@ -136,7 +137,7 @@
             max-width: min(500px, 100%);
         }
         
-        /* Панель выбора типа входа - УЛУЧШЕННАЯ */
+        /* Панель выбора типа входа - ИСПРАВЛЕННАЯ */
         .auth-mode-selector {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -149,21 +150,24 @@
             padding: clamp(18px, 4vw, 24px) clamp(12px, 3vw, 20px);
             background: var(--card-glass);
             backdrop-filter: blur(20px);
-            border: 2px solid transparent;
+            border: 2px solid rgba(59, 130, 246, 0.2);
             border-radius: 20px;
             color: var(--text-muted);
             font-size: clamp(14px, 2.5vw, 16px);
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: clamp(8px, 2vw, 12px);
+            justify-content: center;
+            gap: clamp(10px, 2vw, 15px);
             text-align: center;
             position: relative;
             overflow: hidden;
-            min-height: 100px;
+            min-height: 110px;
+            outline: none;
+            user-select: none;
         }
         
         .mode-btn::before {
@@ -176,7 +180,7 @@
             background: var(--gradient-glass);
             opacity: 0;
             transition: opacity 0.4s;
-            z-index: -1;
+            z-index: 0;
         }
         
         .mode-btn::after {
@@ -186,32 +190,38 @@
             left: 50%;
             width: 0;
             height: 0;
-            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
             transform: translate(-50%, -50%);
             transition: width 0.6s, height 0.6s;
             border-radius: 50%;
+            pointer-events: none;
         }
         
-        .mode-btn:hover {
-            transform: translateY(-8px) scale(1.05);
-            border-color: var(--border-glow);
+        .mode-btn:hover,
+        .mode-btn:focus {
+            transform: translateY(-8px) scale(1.03);
+            border-color: var(--primary);
             color: var(--text);
             box-shadow: var(--shadow-lg);
+            outline: none;
         }
         
-        .mode-btn:hover::before {
+        .mode-btn:hover::before,
+        .mode-btn:focus::before {
             opacity: 1;
         }
         
-        .mode-btn:hover::after {
-            width: 200%;
-            height: 200%;
+        .mode-btn:hover::after,
+        .mode-btn:focus::after {
+            width: 150%;
+            height: 150%;
         }
         
         .mode-btn.active {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.1));
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(139, 92, 246, 0.15));
             border-color: var(--primary);
-            color: var(--text);
+            border-width: 2px;
+            color: var(--primary);
             box-shadow: var(--glow);
             transform: translateY(-5px);
         }
@@ -221,43 +231,81 @@
         }
         
         .mode-btn i {
-            font-size: clamp(28px, 6vw, 40px);
-            transition: all 0.5s;
+            font-size: clamp(30px, 6vw, 38px);
+            transition: all 0.4s;
             position: relative;
-            z-index: 2;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
         }
         
-        .mode-btn:hover i {
-            transform: scale(1.2) rotate(5deg);
+        .mode-btn:hover i,
+        .mode-btn:focus i {
+            transform: scale(1.15) rotate(5deg);
         }
         
         .mode-btn.active i {
-            animation: pulse 2s infinite;
+            animation: pulseIcon 2s infinite;
         }
         
         .mode-btn span {
             position: relative;
-            z-index: 2;
-            font-weight: 600;
+            z-index: 1;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            transition: color 0.3s;
+        }
+        
+        .mode-btn:hover span,
+        .mode-btn:focus span {
+            color: var(--text);
+        }
+        
+        /* Иконки в кнопках - ИСПРАВЛЕНО */
+        .mode-icon {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(59, 130, 246, 0.1);
+            transition: all 0.4s;
+        }
+        
+        .mode-btn:hover .mode-icon,
+        .mode-btn:focus .mode-icon {
+            background: rgba(59, 130, 246, 0.2);
+            transform: scale(1.1);
+        }
+        
+        .mode-btn.active .mode-icon {
+            background: rgba(59, 130, 246, 0.25);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);
         }
         
         /* Бейдж для кнопки регистрации */
         .new-badge {
             position: absolute;
-            top: -8px;
-            right: -8px;
+            top: -6px;
+            right: -6px;
             background: var(--gradient-3);
             color: white;
-            padding: clamp(4px, 1vw, 6px) clamp(10px, 2vw, 15px);
+            padding: clamp(4px, 1vw, 6px) clamp(10px, 2vw, 14px);
             border-radius: 20px;
             font-size: clamp(10px, 2vw, 12px);
             font-weight: 800;
-            animation: glow 2s infinite;
+            animation: glowBadge 2s infinite;
             z-index: 10;
             box-shadow: 0 5px 15px rgba(217, 70, 239, 0.4);
+            pointer-events: none;
         }
         
-        /* Фичи */
+        /* ФИЧИ - ПЕРЕРАБОТАННЫЕ */
         .features {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -267,14 +315,15 @@
         
         .feature {
             text-align: center;
-            padding: clamp(20px, 4vw, 30px);
-            background: var(--card-glass);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            border: 1px solid rgba(59, 130, 246, 0.1);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            padding: clamp(25px, 4vw, 35px);
+            background: var(--gradient-feature);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative;
             overflow: hidden;
+            cursor: default;
         }
         
         .feature::before {
@@ -283,50 +332,84 @@
             top: 0;
             left: 0;
             right: 0;
+            height: 4px;
+            background: var(--gradient-1);
+            transform: translateY(-100%);
+            transition: transform 0.4s;
+        }
+        
+        .feature::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
             bottom: 0;
-            background: var(--gradient-glass);
+            background: var(--gradient-1);
             opacity: 0;
             transition: opacity 0.4s;
+            z-index: 0;
         }
         
         .feature:hover {
             transform: translateY(-12px) scale(1.05);
             border-color: var(--primary);
-            box-shadow: var(--shadow-lg);
+            box-shadow: var(--shadow-feature);
         }
         
         .feature:hover::before {
-            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .feature:hover::after {
+            opacity: 0.1;
         }
         
         .feature > * {
             position: relative;
-            z-index: 2;
+            z-index: 1;
         }
         
-        .feature i {
-            font-size: clamp(32px, 6vw, 48px);
+        .feature-icon {
+            font-size: clamp(36px, 6vw, 48px);
             color: var(--primary);
-            margin-bottom: clamp(15px, 3vw, 20px);
+            margin-bottom: clamp(18px, 3vw, 25px);
             transition: all 0.4s;
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(59, 130, 246, 0.1);
+            margin: 0 auto clamp(20px, 3vw, 25px);
         }
         
-        .feature:hover i {
-            transform: scale(1.3);
-            color: var(--text);
+        .feature:hover .feature-icon {
+            transform: scale(1.2);
+            color: white;
+            background: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);
         }
         
         .feature h3 {
-            font-size: clamp(16px, 3vw, 20px);
-            margin-bottom: clamp(10px, 2vw, 15px);
+            font-size: clamp(18px, 3vw, 22px);
+            margin-bottom: clamp(12px, 2vw, 18px);
             color: var(--text);
-            font-weight: 700;
+            font-weight: 800;
+            letter-spacing: 0.5px;
         }
         
         .feature p {
             color: var(--text-muted);
-            font-size: clamp(13px, 2.5vw, 15px);
+            font-size: clamp(14px, 2.5vw, 15px);
             line-height: 1.6;
+            transition: color 0.3s;
+        }
+        
+        .feature:hover p {
+            color: rgba(255, 255, 255, 0.9);
         }
         
         /* Правая колонка - Форма */
@@ -335,7 +418,7 @@
             backdrop-filter: blur(30px);
             border-radius: 30px;
             padding: clamp(30px, 6vw, 50px);
-            border: 1px solid rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.25);
             box-shadow: var(--shadow-lg);
             position: relative;
             overflow: hidden;
@@ -449,6 +532,8 @@
             overflow: hidden;
             letter-spacing: 0.8px;
             text-transform: uppercase;
+            outline: none;
+            user-select: none;
         }
         
         .auth-btn::before {
@@ -462,13 +547,16 @@
             transition: left 0.8s;
         }
         
-        .auth-btn:hover {
+        .auth-btn:hover,
+        .auth-btn:focus {
             transform: translateY(-8px) scale(1.03);
             box-shadow: var(--shadow-lg);
             letter-spacing: 1.2px;
+            outline: none;
         }
         
-        .auth-btn:hover::before {
+        .auth-btn:hover::before,
+        .auth-btn:focus::before {
             left: 100%;
         }
         
@@ -479,19 +567,19 @@
         .btn-login {
             background: var(--gradient-1);
             color: white;
-            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
+            box-shadow: 0 10px 40px rgba(59, 130, 246, 0.5);
         }
         
         .btn-register {
             background: var(--gradient-2);
             color: white;
-            box-shadow: 0 10px 30px rgba(6, 182, 212, 0.4);
+            box-shadow: 0 10px 40px rgba(6, 182, 212, 0.5);
         }
         
         .btn-admin {
             background: var(--gradient-3);
             color: white;
-            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4);
+            box-shadow: 0 10px 40px rgba(139, 92, 246, 0.5);
         }
         
         .auth-btn i {
@@ -499,7 +587,8 @@
             transition: all 0.4s;
         }
         
-        .auth-btn:hover i {
+        .auth-btn:hover i,
+        .auth-btn:focus i {
             transform: translateX(8px) scale(1.2);
         }
         
@@ -514,19 +603,19 @@
             line-height: 1.6;
         }
         
-        /* Анимации для мобильных */
+        /* Анимации */
         @keyframes float {
             0%, 100% { transform: translateY(0) rotate(0deg); }
             50% { transform: translateY(-20px) rotate(5deg); }
         }
         
-        @keyframes pulse {
+        @keyframes pulseIcon {
             0%, 100% { 
                 transform: scale(1); 
                 filter: drop-shadow(0 0 10px currentColor);
             }
             50% { 
-                transform: scale(1.2); 
+                transform: scale(1.1); 
                 filter: drop-shadow(0 0 20px currentColor);
             }
         }
@@ -542,14 +631,14 @@
             }
         }
         
-        @keyframes glow {
+        @keyframes glowBadge {
             0%, 100% { 
                 box-shadow: 0 0 20px rgba(217, 70, 239, 0.6);
                 transform: scale(1);
             }
             50% { 
                 box-shadow: 0 0 40px rgba(217, 70, 239, 0.9);
-                transform: scale(1.1);
+                transform: scale(1.05);
             }
         }
         
@@ -601,16 +690,22 @@
             }
             
             .mode-btn {
-                min-height: 80px;
+                min-height: 90px;
                 flex-direction: row;
                 justify-content: flex-start;
-                padding: 20px;
+                padding: 20px 25px;
                 text-align: left;
+                gap: 20px;
+            }
+            
+            .mode-icon {
+                width: 50px;
+                height: 50px;
+                flex-shrink: 0;
             }
             
             .mode-btn i {
-                font-size: 28px;
-                margin-right: 15px;
+                font-size: 24px;
             }
             
             .features {
@@ -649,19 +744,24 @@
             }
             
             .mode-btn {
-                min-height: 70px;
-                padding: 15px;
+                min-height: 85px;
+                padding: 18px 20px;
                 font-size: 14px;
+                gap: 15px;
+            }
+            
+            .mode-icon {
+                width: 45px;
+                height: 45px;
             }
             
             .mode-btn i {
-                font-size: 24px;
-                margin-right: 12px;
+                font-size: 22px;
             }
             
             .new-badge {
                 font-size: 10px;
-                padding: 3px 8px;
+                padding: 3px 10px;
                 top: -5px;
                 right: -5px;
             }
@@ -690,7 +790,9 @@
                 padding: 20px;
             }
             
-            .feature i {
+            .feature-icon {
+                width: 70px;
+                height: 70px;
                 font-size: 32px;
             }
         }
@@ -707,11 +809,16 @@
             
             .mode-btn {
                 font-size: 13px;
-                min-height: 65px;
+                min-height: 80px;
+            }
+            
+            .mode-icon {
+                width: 40px;
+                height: 40px;
             }
             
             .mode-btn i {
-                font-size: 22px;
+                font-size: 20px;
             }
             
             .auth-btn {
@@ -749,15 +856,6 @@
             }
         }
         
-        /* Поддержка темной темы систем */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --background: #0f172a;
-                --card-bg: #1e293b;
-                --text: #f1f5f9;
-            }
-        }
-        
         /* Улучшение доступности для касаний */
         @media (hover: none) and (pointer: coarse) {
             .mode-btn:hover,
@@ -769,11 +867,11 @@
             .mode-btn:active,
             .feature:active,
             .auth-btn:active {
-                transform: scale(0.98);
+                transform: scale(0.97);
             }
             
             .mode-btn.active {
-                transform: scale(0.98);
+                transform: scale(0.97);
             }
         }
         
@@ -790,25 +888,6 @@
         
         @keyframes spin {
             to { transform: rotate(360deg); }
-        }
-        
-        /* Кастомный скроллбар для форм */
-        .form-container::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        .form-container::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.05);
-            border-radius: 4px;
-        }
-        
-        .form-container::-webkit-scrollbar-thumb {
-            background: var(--primary);
-            border-radius: 4px;
-        }
-        
-        .form-container::-webkit-scrollbar-thumb:hover {
-            background: var(--primary-dark);
         }
     </style>
 </head>
@@ -827,39 +906,51 @@
                 </div>
                 <p class="tagline">Персональный AI-помощник для учебного процесса 7Б класса. Умная система обучения с геймификацией и прогрессивной аналитикой.</p>
                 
-                <!-- Панель выбора типа входа -->
+                <!-- Панель выбора типа входа - ТЕПЕРЬ КЛИКАБЕЛЬНА -->
                 <div class="auth-mode-selector">
-                    <button class="mode-btn active" data-target="login">
-                        <i class="fas fa-sign-in-alt"></i>
+                    <button class="mode-btn active" data-target="login" tabindex="0">
+                        <div class="mode-icon">
+                            <i class="fas fa-sign-in-alt"></i>
+                        </div>
                         <span>Вход в аккаунт</span>
                     </button>
-                    <button class="mode-btn" data-target="register">
-                        <i class="fas fa-user-plus"></i>
+                    <button class="mode-btn" data-target="register" tabindex="0">
+                        <div class="mode-icon">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
                         <span>Новый аккаунт</span>
                         <div class="new-badge">NEW</div>
                     </button>
-                    <button class="mode-btn" data-target="admin">
-                        <i class="fas fa-shield-alt"></i>
+                    <button class="mode-btn" data-target="admin" tabindex="0">
+                        <div class="mode-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
                         <span>Админ-панель</span>
                     </button>
                 </div>
 
-                <!-- Фичи -->
+                <!-- ФИЧИ - КРАСИВО ОФОРМЛЕННЫЕ -->
                 <div class="features">
                     <div class="feature">
-                        <i class="fas fa-brain"></i>
+                        <div class="feature-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
                         <h3>AI Интеллект</h3>
-                        <p>Умный помощник для решения задач и объяснения материала</p>
+                        <p>Умный помощник для решения задач и объяснения сложных тем</p>
                     </div>
                     <div class="feature">
-                        <i class="fas fa-trophy"></i>
+                        <div class="feature-icon">
+                            <i class="fas fa-trophy"></i>
+                        </div>
                         <h3>Геймификация</h3>
-                        <p>Очки, уровни и достижения для мотивации к учебе</p>
+                        <p>Система уровней, очков и достижений для мотивации к учебе</p>
                     </div>
                     <div class="feature">
-                        <i class="fas fa-chart-network"></i>
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-network"></i>
+                        </div>
                         <h3>Аналитика</h3>
-                        <p>Детальная статистика прогресса и рекомендации</p>
+                        <p>Детальная статистика прогресса и персональные рекомендации</p>
                     </div>
                 </div>
             </div>
@@ -881,7 +972,7 @@
                             <i class="fas fa-key"></i>
                         </div>
                     </div>
-                    <button id="loginBtn" class="auth-btn btn-login">
+                    <button id="loginBtn" class="auth-btn btn-login" tabindex="0">
                         <i class="fas fa-sign-in-alt"></i> Войти в систему
                     </button>
                     <div class="form-hint">
@@ -916,7 +1007,7 @@
                             <i class="fas fa-redo"></i>
                         </div>
                     </div>
-                    <button id="registerBtn" class="auth-btn btn-register">
+                    <button id="registerBtn" class="auth-btn btn-register" tabindex="0">
                         <i class="fas fa-user-plus"></i> Создать аккаунт
                     </button>
                     <div class="form-hint">
@@ -933,7 +1024,7 @@
                             <i class="fas fa-shield-alt"></i>
                         </div>
                     </div>
-                    <button id="adminBtn" class="auth-btn btn-admin">
+                    <button id="adminBtn" class="auth-btn btn-admin" tabindex="0">
                         <i class="fas fa-lock"></i> Войти как администратор
                     </button>
                     <div class="form-hint">
@@ -988,15 +1079,6 @@
                     }
                 },
                 retina_detect: true
-            });
-            
-            // Адаптивное изменение частиц при ресайзе
-            let resizeTimer;
-            window.addEventListener('resize', function() {
-                clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(function() {
-                    location.reload();
-                }, 250);
             });
         });
     </script>

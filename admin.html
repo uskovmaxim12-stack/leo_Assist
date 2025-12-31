@@ -2240,6 +2240,31 @@
         setInterval(updateTime, 1000);
         updateTime();
     </script>
+    <!-- Мобильная навигация -->
+<div class="mobile-nav" style="display: none;">
+    <a href="#" class="mobile-nav-item active" data-tab="dashboard">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Статистика</span>
+    </a>
+    <a href="#" class="mobile-nav-item" data-tab="users">
+        <i class="fas fa-users"></i>
+        <span>Пользователи</span>
+    </a>
+    <a href="#" class="mobile-nav-item" data-tab="tasks">
+        <i class="fas fa-tasks"></i>
+        <span>Задания</span>
+    </a>
+    <a href="#" class="mobile-nav-item" data-tab="system">
+        <i class="fas fa-cog"></i>
+        <span>Настройки</span>
+    </a>
+</div>
+
+<!-- Кнопка мобильного меню (добавить в header-right) -->
+<button class="mobile-menu-toggle" id="mobileMenuToggle">
+    <i class="fas fa-bars"></i>
+</button>
 </body>
 </html>
+
 

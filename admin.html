@@ -2263,8 +2263,98 @@
 <!-- Кнопка мобильного меню (добавить в header-right) -->
 <button class="mobile-menu-toggle" id="mobileMenuToggle">
     <i class="fas fa-bars"></i>
+    
 </button>
+    <!-- Добавьте этот код после существующего HTML в admin.html -->
+
+<!-- Модальное окно для добавления/редактирования задания -->
+<div class="modal" id="addTaskModal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="taskFormTitle">Добавить задание</h3>
+            <button class="modal-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="taskForm">
+                <input type="hidden" id="taskId" value="">
+                
+                <div class="form-group">
+                    <label for="taskSubject">Предмет *</label>
+                    <select id="taskSubject" class="form-control" required>
+                        <option value="">Выберите предмет</option>
+                        <option value="Математика">Математика</option>
+                        <option value="Русский язык">Русский язык</option>
+                        <option value="Физика">Физика</option>
+                        <option value="История">История</option>
+                        <option value="Английский">Английский</option>
+                        <option value="Информатика">Информатика</option>
+                        <option value="Биология">Биология</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="taskTitle">Название задания *</label>
+                    <input type="text" id="taskTitle" class="form-control" placeholder="Например: №345-348 стр. 45" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="taskDescription">Описание</label>
+                    <textarea id="taskDescription" class="form-control" rows="3" placeholder="Подробное описание задания..."></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="taskPriority">Приоритет</label>
+                        <select id="taskPriority" class="form-control">
+                            <option value="low">Низкий</option>
+                            <option value="medium" selected>Средний</option>
+                            <option value="high">Высокий</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskDueDate">Срок сдачи</label>
+                        <input type="date" id="taskDueDate" class="form-control">
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="document.getElementById('addTaskModal').style.display='none'">
+                Отмена
+            </button>
+            <button id="saveTaskBtn" class="btn-primary">
+                <i class="fas fa-save"></i> Сохранить
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно подтверждения удаления -->
+<div class="modal" id="confirmModal" style="display: none;">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+            <h3 id="confirmTitle">Подтверждение</h3>
+            <button class="modal-close" onclick="document.getElementById('confirmModal').style.display='none'">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p id="confirmMessage">Вы уверены?</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="document.getElementById('confirmModal').style.display='none'">
+                Отмена
+            </button>
+            <button id="confirmAction" class="btn-danger">
+                Подтвердить
+            </button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
+
 
 

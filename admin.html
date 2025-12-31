@@ -2,1242 +2,109 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>Leo Assistant - Административная панель</title>
-    <!-- Подключаем стили -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leo Assistant - Админ-панель</title>
+    <!-- ПОДКЛЮЧАЕМ ВСЕ НУЖНЫЕ СТИЛИ -->
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/dashboard.css">
-    <link rel="stylesheet" href="css/animations.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Стили специально для админки -->
     <style>
-        /* СТИЛИ ДЛЯ АДМИН-ПАНЕЛИ */
-:root {
-    --admin-primary: #3b82f6;
-    --admin-danger: #ef4444;
-    --admin-success: #10b981;
-    --admin-warning: #f59e0b;
-    --admin-bg: #0f172a;
-    --admin-card: #1e293b;
-    --admin-text: #f1f5f9;
-    --admin-border: #334155;
-}
-
-/* АДАПТИВНОСТЬ */
-@media (max-width: 768px) {
-    .admin-header {
-        flex-direction: column;
-        gap: 15px;
-        padding: 15px;
-        height: auto;
-    }
-    
-    .admin-header h1 {
-        font-size: 20px;
-    }
-    
-    .header-right {
-        width: 100%;
-        justify-content: space-between;
-    }
-    
-    .admin-tabs {
-        flex-wrap: wrap;
-        gap: 5px;
-    }
-    
-    .admin-tab {
-        flex: 1;
-        min-width: 100px;
-        padding: 10px 12px;
-        font-size: 13px;
-    }
-    
-    .users-table {
-        display: block;
-        overflow-x: auto;
-    }
-    
-    .users-table th,
-    .users-table td {
-        padding: 12px 8px;
-        font-size: 13px;
-        white-space: nowrap;
-    }
-    
-    .user-cell {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
-    
-    .user-avatar-small {
-        width: 32px;
-        height: 32px;
-        font-size: 13px;
-    }
-    
-    .user-actions {
-        flex-direction: column;
-        gap: 5px;
-    }
-    
-    .btn-action {
-        width: 30px;
-        height: 30px;
-        font-size: 11px;
-    }
-    
-    .admin-form {
-        padding: 20px;
-    }
-    
-    .form-row {
-        grid-template-columns: 1fr;
-        gap: 15px;
-    }
-    
-    .admin-stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-    }
-    
-    .admin-stat-card {
-        padding: 20px;
-    }
-    
-    .stat-value {
-        font-size: 28px;
-    }
-    
-    .task-admin-item {
-        padding: 15px;
-    }
-    
-    .task-admin-actions {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .task-admin-actions .btn-small {
-        width: 100%;
-    }
-    
-    .modal-content {
-        margin: 10px;
-    }
-    
-    /* Мобильное меню */
-    .mobile-nav {
-        display: flex;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: var(--admin-card);
-        border-top: 1px solid var(--admin-border);
-        padding: 10px;
-        z-index: 1000;
-    }
-    
-    .mobile-nav-item {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        color: var(--admin-text);
-        text-decoration: none;
-        padding: 8px 5px;
-        border-radius: 10px;
-        font-size: 11px;
-        opacity: 0.7;
-        transition: all 0.3s;
-    }
-    
-    .mobile-nav-item.active {
-        background: rgba(59, 130, 246, 0.2);
-        opacity: 1;
-    }
-    
-    .mobile-nav-item i {
-        font-size: 18px;
-        margin-bottom: 5px;
-    }
-    
-    /* Скрываем обычную навигацию на мобильных */
-    .dashboard-sidebar {
-        display: none;
-    }
-    
-    .dashboard-sidebar.mobile-open {
-        display: flex;
-        position: fixed;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        z-index: 2000;
-    }
-    
-    .mobile-menu-toggle {
-        display: flex;
-    }
-}
-
-@media (max-width: 480px) {
-    .admin-stats-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .admin-tab {
-        min-width: calc(50% - 5px);
-    }
-    
-    .admin-header h1 {
-        font-size: 18px;
-    }
-    
-    .header-right {
-        flex-direction: column;
-        gap: 10px;
-        align-items: stretch;
-    }
-    
-    .header-stats {
-        justify-content: space-between;
-    }
-    
-    .stat-card {
-        padding: 10px;
-    }
-    
-    .stat-value {
-        font-size: 20px;
-    }
-    
-    .stat-label {
-        font-size: 10px;
-    }
-}
-
-/* УТИЛИТЫ ДЛЯ АДМИН-ПАНЕЛИ */
-.admin-dashboard {
-    background: var(--admin-bg);
-    color: var(--admin-text);
-    min-height: 100vh;
-}
-
-.admin-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-.admin-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 0;
-    margin-bottom: 30px;
-    border-bottom: 2px solid var(--admin-border);
-}
-
-.admin-header h1 {
-    margin: 0;
-    font-size: 28px;
-    color: var(--admin-text);
-}
-
-.admin-header h1 i {
-    color: var(--admin-primary);
-    margin-right: 10px;
-}
-
-.header-stats {
-    display: flex;
-    gap: 20px;
-    align-items: center;
-}
-
-.header-stat {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 15px;
-    background: rgba(59, 130, 246, 0.1);
-    border-radius: 10px;
-    border: 1px solid rgba(59, 130, 246, 0.2);
-}
-
-.header-stat i {
-    color: var(--admin-primary);
-    font-size: 18px;
-}
-
-.header-stat span {
-    font-weight: 600;
-    font-size: 14px;
-}
-
-.header-actions {
-    display: flex;
-    gap: 10px;
-}
-
-.admin-tabs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 30px;
-    border-bottom: 2px solid var(--admin-border);
-    padding-bottom: 15px;
-    flex-wrap: wrap;
-}
-
-.admin-tab {
-    padding: 12px 24px;
-    background: none;
-    border: none;
-    color: var(--admin-text);
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: all 0.3s;
-    opacity: 0.7;
-    position: relative;
-}
-
-.admin-tab:hover {
-    opacity: 1;
-    background: rgba(59, 130, 246, 0.1);
-}
-
-.admin-tab.active {
-    opacity: 1;
-    background: var(--admin-primary);
-    color: white;
-}
-
-.admin-tab-badge {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background: var(--admin-danger);
-    color: white;
-    font-size: 11px;
-    padding: 2px 6px;
-    border-radius: 10px;
-    min-width: 18px;
-    text-align: center;
-}
-
-.admin-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    margin-bottom: 30px;
-}
-
-.admin-stat-card {
-    background: var(--admin-card);
-    border-radius: 15px;
-    padding: 25px;
-    border: 1px solid var(--admin-border);
-    transition: all 0.3s;
-    text-align: center;
-}
-
-.admin-stat-card:hover {
-    transform: translateY(-5px);
-    border-color: var(--admin-primary);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-}
-
-.stat-icon {
-    font-size: 32px;
-    margin-bottom: 15px;
-    color: var(--admin-primary);
-}
-
-.stat-value {
-    font-size: 36px;
-    font-weight: 800;
-    margin: 10px 0;
-    color: var(--admin-text);
-}
-
-.stat-label {
-    font-size: 14px;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.admin-table-container {
-    background: var(--admin-card);
-    border-radius: 15px;
-    overflow: hidden;
-    border: 1px solid var(--admin-border);
-}
-
-.users-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.users-table th {
-    background: rgba(30, 41, 59, 0.8);
-    padding: 18px 20px;
-    text-align: left;
-    font-weight: 700;
-    color: #94a3b8;
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 2px solid var(--admin-border);
-}
-
-.users-table td {
-    padding: 18px 20px;
-    border-bottom: 1px solid var(--admin-border);
-    vertical-align: middle;
-}
-
-.users-table tr:hover {
-    background: rgba(59, 130, 246, 0.05);
-}
-
-.users-table tr:last-child td {
-    border-bottom: none;
-}
-
-.user-cell {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.user-avatar-small {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, var(--admin-primary), #8b5cf6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 700;
-    font-size: 14px;
-    flex-shrink: 0;
-}
-
-.user-name {
-    font-weight: 600;
-    color: var(--admin-text);
-    margin-bottom: 4px;
-}
-
-.user-login {
-    font-size: 12px;
-    color: #94a3b8;
-}
-
-.role-badge {
-    display: inline-block;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-}
-
-.role-badge.admin {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--admin-danger);
-    border: 1px solid rgba(239, 68, 68, 0.2);
-}
-
-.role-badge.student {
-    background: rgba(59, 130, 246, 0.1);
-    color: var(--admin-primary);
-    border: 1px solid rgba(59, 130, 246, 0.2);
-}
-
-.role-badge.teacher {
-    background: rgba(16, 185, 129, 0.1);
-    color: var(--admin-success);
-    border: 1px solid rgba(16, 185, 129, 0.2);
-}
-
-.user-actions {
-    display: flex;
-    gap: 8px;
-}
-
-.btn-action {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-size: 14px;
-}
-
-.btn-edit {
-    background: rgba(59, 130, 246, 0.1);
-    color: var(--admin-primary);
-}
-
-.btn-edit:hover {
-    background: rgba(59, 130, 246, 0.2);
-    transform: translateY(-2px);
-}
-
-.btn-reset {
-    background: rgba(245, 158, 11, 0.1);
-    color: var(--admin-warning);
-}
-
-.btn-reset:hover {
-    background: rgba(245, 158, 11, 0.2);
-    transform: translateY(-2px);
-}
-
-.btn-delete {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--admin-danger);
-}
-
-.btn-delete:hover {
-    background: rgba(239, 68, 68, 0.2);
-    transform: translateY(-2px);
-}
-
-.admin-form {
-    background: var(--admin-card);
-    border-radius: 15px;
-    padding: 30px;
-    border: 1px solid var(--admin-border);
-    margin-bottom: 30px;
-    display: none;
-}
-
-.admin-form h3 {
-    margin: 0 0 25px;
-    font-size: 22px;
-    color: var(--admin-text);
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    margin-bottom: 20px;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: var(--admin-text);
-    font-size: 14px;
-}
-
-.form-control {
-    width: 100%;
-    padding: 14px 18px;
-    background: rgba(15, 23, 42, 0.7);
-    border: 2px solid var(--admin-border);
-    border-radius: 10px;
-    color: var(--admin-text);
-    font-size: 15px;
-    transition: all 0.3s;
-}
-
-.form-control:focus {
-    outline: none;
-    border-color: var(--admin-primary);
-    background: rgba(15, 23, 42, 0.9);
-}
-
-.form-actions {
-    display: flex;
-    gap: 15px;
-    margin-top: 30px;
-}
-
-.task-admin-item {
-    background: var(--admin-card);
-    border-radius: 15px;
-    padding: 25px;
-    border: 1px solid var(--admin-border);
-    margin-bottom: 20px;
-    transition: all 0.3s;
-}
-
-.task-admin-item:hover {
-    border-color: var(--admin-primary);
-    transform: translateY(-3px);
-}
-
-.task-admin-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.task-subject-badge {
-    padding: 8px 16px;
-    background: rgba(59, 130, 246, 0.1);
-    color: var(--admin-primary);
-    border-radius: 20px;
-    font-weight: 700;
-    font-size: 14px;
-    border: 1px solid rgba(59, 130, 246, 0.2);
-}
-
-.task-priority {
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-}
-
-.task-priority.high {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--admin-danger);
-    border: 1px solid rgba(239, 68, 68, 0.2);
-}
-
-.task-priority.medium {
-    background: rgba(245, 158, 11, 0.1);
-    color: var(--admin-warning);
-    border: 1px solid rgba(245, 158, 11, 0.2);
-}
-
-.task-priority.low {
-    background: rgba(16, 185, 129, 0.1);
-    color: var(--admin-success);
-    border: 1px solid rgba(16, 185, 129, 0.2);
-}
-
-.task-admin-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--admin-text);
-    margin-bottom: 12px;
-}
-
-.task-admin-description {
-    color: #94a3b8;
-    line-height: 1.6;
-    margin-bottom: 20px;
-    font-size: 15px;
-}
-
-.task-admin-meta {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-    margin-bottom: 20px;
-    padding: 20px;
-    background: rgba(15, 23, 42, 0.5);
-    border-radius: 10px;
-    border: 1px solid var(--admin-border);
-}
-
-.task-meta-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 14px;
-    color: var(--admin-text);
-}
-
-.task-meta-item i {
-    color: var(--admin-primary);
-    font-size: 16px;
-}
-
-.task-admin-actions {
-    display: flex;
-    gap: 15px;
-}
-
-.log-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 15px;
-    padding: 20px;
-    background: var(--admin-card);
-    border-radius: 15px;
-    border: 1px solid var(--admin-border);
-    margin-bottom: 15px;
-    transition: all 0.3s;
-}
-
-.log-item:hover {
-    border-color: var(--admin-primary);
-    transform: translateX(5px);
-}
-
-.log-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    flex-shrink: 0;
-}
-
-.log-icon.login {
-    background: rgba(59, 130, 246, 0.1);
-    color: var(--admin-primary);
-    border: 1px solid rgba(59, 130, 246, 0.2);
-}
-
-.log-icon.system {
-    background: rgba(16, 185, 129, 0.1);
-    color: var(--admin-success);
-    border: 1px solid rgba(16, 185, 129, 0.2);
-}
-
-.log-content {
-    flex: 1;
-}
-
-.log-message {
-    font-weight: 600;
-    color: var(--admin-text);
-    margin-bottom: 8px;
-    font-size: 15px;
-}
-
-.log-meta {
-    display: flex;
-    gap: 15px;
-    font-size: 13px;
-    color: #94a3b8;
-}
-
-.log-user {
-    font-weight: 600;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 50px 20px;
-    color: #94a3b8;
-}
-
-.empty-state i {
-    font-size: 48px;
-    margin-bottom: 20px;
-    opacity: 0.5;
-}
-
-.empty-state h3 {
-    margin: 0 0 10px;
-    font-size: 20px;
-    color: var(--admin-text);
-}
-
-.empty-state p {
-    margin: 0;
-    font-size: 15px;
-}
-
-/* КНОПКИ */
-.btn-primary, .btn-secondary, .btn-danger, .btn-success {
-    padding: 14px 24px;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 15px;
-    cursor: pointer;
-    transition: all 0.3s;
-    border: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    text-decoration: none;
-}
-
-.btn-primary {
-    background: var(--admin-primary);
-    color: white;
-}
-
-.btn-primary:hover {
-    background: #2563eb;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
-}
-
-.btn-secondary {
-    background: transparent;
-    color: var(--admin-text);
-    border: 2px solid var(--admin-border);
-}
-
-.btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: var(--admin-primary);
-    transform: translateY(-2px);
-}
-
-.btn-danger {
-    background: var(--admin-danger);
-    color: white;
-}
-
-.btn-danger:hover {
-    background: #dc2626;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(239, 68, 68, 0.3);
-}
-
-.btn-success {
-    background: var(--admin-success);
-    color: white;
-}
-
-.btn-success:hover {
-    background: #0da271;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
-}
-
-.btn-small {
-    padding: 8px 16px;
-    font-size: 14px;
-    border-radius: 8px;
-}
-
-/* УВЕДОМЛЕНИЯ */
-.floating-notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: var(--admin-card);
-    color: var(--admin-text);
-    padding: 18px 24px;
-    border-radius: 12px;
-    border-left: 4px solid var(--admin-primary);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    z-index: 3000;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    animation: slideInRight 0.3s ease;
-    max-width: 400px;
-}
-
-.floating-notification.notification-success {
-    border-left-color: var(--admin-success);
-}
-
-.floating-notification.notification-error {
-    border-left-color: var(--admin-danger);
-}
-
-.floating-notification.notification-warning {
-    border-left-color: var(--admin-warning);
-}
-
-.floating-notification i {
-    font-size: 20px;
-}
-
-.notification-close {
-    background: transparent;
-    border: none;
-    color: #94a3b8;
-    font-size: 14px;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 6px;
-    transition: all 0.2s;
-}
-
-.notification-close:hover {
-    color: var(--admin-text);
-    background: rgba(255, 255, 255, 0.1);
-}
-
-/* АНИМАЦИИ */
-@keyframes slideInRight {
-    from {
-        opacity: 0;
-        transform: translateX(100%);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-/* МОБИЛЬНОЕ МЕНЮ */
-.mobile-menu-toggle {
-    display: none;
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: rgba(59, 130, 246, 0.1);
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    color: var(--admin-primary);
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 20px;
-    margin-left: 15px;
-}
-
-/* ПРОКРУТКА */
-::-webkit-scrollbar {
-    width: 10px;
-}
-
-::-webkit-scrollbar-track {
-    background: rgba(15, 23, 42, 0.5);
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--admin-border);
-    border-radius: 5px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #475569;
-}
-
-/* ЗАГРУЗКА */
-.loading {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--admin-border);
-    border-top-color: var(--admin-primary);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-        /* Фирменные переменные для админки */
-        :root {
-            --admin-primary: #3b82f6;
-            --admin-secondary: #8b5cf6;
-            --admin-accent: #06b6d4;
-            --admin-success: #10b981;
-            --admin-warning: #f59e0b;
-            --admin-danger: #ef4444;
-            --admin-info: #3b82f6;
-            --admin-dark: #0f172a;
-            --admin-card: #1e293b;
-            --admin-border: #334155;
-            --admin-text: #f1f5f9;
-            --admin-text-muted: #94a3b8;
-            --admin-gradient: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-            --admin-glow: 0 0 30px rgba(59, 130, 246, 0.3);
-            --admin-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        }
-        
-        /* Основные стили админки */
-        .admin-dashboard {
-            display: flex;
-            min-height: 100vh;
-            background: var(--admin-dark);
-            color: var(--admin-text);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        /* Сайдбар админа */
-        .admin-sidebar {
-            width: 280px;
-            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-            border-right: 1px solid var(--admin-border);
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            height: 100vh;
-            z-index: 100;
-            box-shadow: 5px 0 20px rgba(0, 0, 0, 0.2);
-        }
-        
-        .admin-sidebar.collapsed {
-            transform: translateX(-280px);
-        }
-        
-        .sidebar-header {
-            padding: 30px 25px;
-            border-bottom: 1px solid var(--admin-border);
-            background: rgba(59, 130, 246, 0.1);
-        }
-        
-        .admin-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .admin-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: var(--admin-gradient);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 24px;
-            font-weight: bold;
-            border: 3px solid rgba(255, 255, 255, 0.2);
-            box-shadow: var(--admin-glow);
-        }
-        
-        .admin-details h2 {
-            margin: 0 0 5px;
-            font-size: 18px;
-            font-weight: 700;
-        }
-        
-        .admin-details .role {
-            color: var(--admin-primary);
-            font-size: 13px;
-            background: rgba(59, 130, 246, 0.15);
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-weight: 600;
-        }
-        
-        /* Навигация админа */
-        .admin-nav {
-            flex: 1;
-            padding: 25px 0;
-            overflow-y: auto;
-        }
-        
-        .admin-nav-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 18px 25px;
-            color: var(--admin-text-muted);
-            text-decoration: none;
-            transition: all 0.3s;
-            border-left: 4px solid transparent;
-            margin: 5px 0;
-            cursor: pointer;
-            font-weight: 500;
-        }
-        
-        .admin-nav-item:hover {
-            background: rgba(59, 130, 246, 0.1);
-            color: var(--admin-text);
-            border-left-color: var(--admin-primary);
-            transform: translateX(5px);
-        }
-        
-        .admin-nav-item.active {
-            background: rgba(59, 130, 246, 0.2);
-            color: var(--admin-primary);
-            border-left-color: var(--admin-primary);
-            font-weight: 600;
-        }
-        
-        .admin-nav-item i {
-            width: 24px;
-            text-align: center;
-            font-size: 18px;
-        }
-        
-        .nav-badge {
-            margin-left: auto;
-            background: var(--admin-primary);
-            color: white;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-            min-width: 24px;
-            text-align: center;
-            font-weight: 700;
-        }
-        
-        .nav-badge.warning {
-            background: var(--admin-warning);
-        }
-        
-        .nav-badge.danger {
-            background: var(--admin-danger);
-        }
-        
-        .nav-badge.success {
-            background: var(--admin-success);
-        }
-        
-        /* Сайдбар футер */
-        .sidebar-footer {
-            padding: 20px 25px;
-            border-top: 1px solid var(--admin-border);
-            background: rgba(0, 0, 0, 0.2);
-        }
-        
-        .quick-stats {
+        /* Админ-специфичные стили */
+        .admin-stats-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .admin-stat-card {
+            background: var(--glass-bg);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid var(--glass-border);
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .admin-stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .admin-stat-card.primary {
+            border-color: var(--primary);
+        }
+        
+        .admin-stat-card.success {
+            border-color: var(--success);
+        }
+        
+        .admin-stat-card.warning {
+            border-color: var(--warning);
+        }
+        
+        .admin-stat-card.danger {
+            border-color: var(--danger);
+        }
+        
+        .stat-icon {
+            font-size: 32px;
             margin-bottom: 15px;
         }
         
-        .quick-stat {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 12px;
-            border-radius: 10px;
-            text-align: center;
-        }
-        
-        .quick-stat .value {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--admin-primary);
-            display: block;
-        }
-        
-        .quick-stat .label {
-            font-size: 11px;
-            color: var(--admin-text-muted);
-            margin-top: 4px;
-        }
-        
-        /* Основной контент */
-        .admin-main {
-            flex: 1;
-            margin-left: 280px;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-        
-        .admin-header {
-            padding: 20px 35px;
-            background: var(--admin-card);
-            border-bottom: 1px solid var(--admin-border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-        }
-        
-        .header-left h1 {
-            margin: 0;
-            font-size: 26px;
+        .stat-value {
+            font-size: 36px;
             font-weight: 800;
-            background: var(--admin-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            margin: 10px 0;
+            color: var(--text);
         }
         
-        .header-left .subtitle {
-            color: var(--admin-text-muted);
+        .stat-label {
             font-size: 14px;
-            margin-top: 5px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .header-btn {
-            padding: 10px 20px;
-            background: rgba(59, 130, 246, 0.1);
-            border: 1px solid var(--admin-border);
-            border-radius: 10px;
-            color: var(--admin-text);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 500;
-        }
-        
-        .header-btn:hover {
-            background: rgba(59, 130, 246, 0.2);
-            border-color: var(--admin-primary);
-            transform: translateY(-2px);
-        }
-        
-        .admin-content {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
-        }
-        
-        /* Вкладки */
+        /* Вкладки админки */
         .admin-tabs {
             display: flex;
             gap: 10px;
             margin-bottom: 30px;
-            border-bottom: 2px solid var(--admin-border);
-            padding-bottom: 15px;
             flex-wrap: wrap;
         }
         
         .admin-tab {
-            padding: 12px 25px;
-            background: transparent;
-            border: none;
-            border-radius: 10px;
-            color: var(--admin-text-muted);
+            padding: 12px 24px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--text-muted);
             cursor: pointer;
             font-weight: 600;
             transition: all 0.3s;
             display: flex;
             align-items: center;
-            gap: 10px;
-            position: relative;
+            gap: 8px;
         }
         
         .admin-tab:hover {
             background: rgba(59, 130, 246, 0.1);
-            color: var(--admin-text);
+            color: var(--text);
+            border-color: rgba(59, 130, 246, 0.3);
         }
         
         .admin-tab.active {
-            background: var(--admin-primary);
+            background: var(--primary);
             color: white;
-            box-shadow: var(--admin-shadow);
+            border-color: var(--primary);
         }
         
-        .admin-tab .badge {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 12px;
-        }
-        
+        /* Контент вкладок */
         .tab-content {
             display: none;
             animation: fadeIn 0.4s ease;
@@ -1247,152 +114,39 @@
             display: block;
         }
         
-        /* Статистические карточки */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .stat-card {
-            background: var(--admin-card);
-            border-radius: 16px;
-            padding: 25px;
-            border: 1px solid var(--admin-border);
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--admin-gradient);
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--admin-shadow);
-            border-color: var(--admin-primary);
-        }
-        
-        .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            background: rgba(59, 130, 246, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: var(--admin-primary);
-            margin-bottom: 20px;
-        }
-        
-        .stat-value {
-            font-size: 36px;
-            font-weight: 800;
-            margin: 10px 0;
-            color: var(--admin-text);
-        }
-        
-        .stat-label {
-            font-size: 14px;
-            color: var(--admin-text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .stat-change {
-            font-size: 14px;
-            margin-top: 10px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .stat-change.positive {
-            color: var(--admin-success);
-        }
-        
-        .stat-change.negative {
-            color: var(--admin-danger);
-        }
-        
-        /* Таблицы */
-        .admin-table-container {
-            background: var(--admin-card);
-            border-radius: 16px;
-            border: 1px solid var(--admin-border);
-            overflow: hidden;
-            margin-bottom: 30px;
-        }
-        
-        .table-header {
-            padding: 25px;
-            border-bottom: 1px solid var(--admin-border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .table-header h3 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .table-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .table-search {
-            padding: 10px 15px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--admin-border);
-            border-radius: 8px;
-            color: var(--admin-text);
-            width: 250px;
-        }
-        
-        .admin-table {
+        /* Таблица пользователей */
+        .users-table {
             width: 100%;
             border-collapse: collapse;
+            background: var(--glass-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
         }
         
-        .admin-table th {
+        .users-table th {
+            background: rgba(30, 41, 59, 0.7);
             padding: 18px 20px;
             text-align: left;
             font-weight: 700;
-            color: var(--admin-text-muted);
-            border-bottom: 2px solid var(--admin-border);
-            background: rgba(0, 0, 0, 0.1);
-            font-size: 13px;
+            color: var(--text-muted);
+            border-bottom: 2px solid var(--glass-border);
             text-transform: uppercase;
-            letter-spacing: 1px;
+            font-size: 13px;
+            letter-spacing: 0.5px;
         }
         
-        .admin-table td {
+        .users-table td {
             padding: 18px 20px;
-            border-bottom: 1px solid var(--admin-border);
-            color: var(--admin-text);
+            border-bottom: 1px solid var(--glass-border);
         }
         
-        .admin-table tr:hover {
-            background: rgba(59, 130, 246, 0.05);
+        .users-table tr:hover {
+            background: rgba(59, 130, 246, 0.03);
         }
         
         /* Кнопки действий */
-        .action-buttons {
+        .user-actions {
             display: flex;
             gap: 8px;
         }
@@ -1403,60 +157,64 @@
             border-radius: 8px;
             border: none;
             cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s;
-            font-size: 14px;
         }
         
         .btn-edit {
             background: rgba(59, 130, 246, 0.1);
-            color: var(--admin-primary);
+            color: var(--primary);
+        }
+        
+        .btn-edit:hover {
+            background: rgba(59, 130, 246, 0.2);
+            transform: translateY(-2px);
         }
         
         .btn-delete {
             background: rgba(239, 68, 68, 0.1);
-            color: var(--admin-danger);
+            color: var(--danger);
         }
         
-        .btn-view {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--admin-success);
-        }
-        
-        .btn-action:hover {
+        .btn-delete:hover {
+            background: rgba(239, 68, 68, 0.2);
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
         
-        /* Формы */
+        .btn-reset {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+        
+        .btn-reset:hover {
+            background: rgba(245, 158, 11, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        /* Форма добавления пользователя */
         .admin-form {
-            background: var(--admin-card);
+            background: var(--glass-bg);
             border-radius: 16px;
             padding: 30px;
-            border: 1px solid var(--admin-border);
-            max-width: 800px;
+            border: 1px solid var(--glass-border);
+            max-width: 600px;
             margin: 0 auto;
-        }
-        
-        .form-section {
-            margin-bottom: 30px;
-        }
-        
-        .form-section h3 {
-            margin: 0 0 20px;
-            font-size: 18px;
-            color: var(--admin-text);
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--admin-border);
         }
         
         .form-row {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: 1fr 1fr;
             gap: 20px;
             margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
         }
         
         .form-group {
@@ -1467,240 +225,161 @@
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            color: var(--admin-text);
-            font-size: 14px;
+            color: var(--text);
         }
         
         .form-control {
             width: 100%;
             padding: 14px 18px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid var(--admin-border);
+            background: var(--background);
+            border: 2px solid var(--glass-border);
             border-radius: 10px;
-            color: var(--admin-text);
+            color: var(--text);
             font-size: 15px;
             transition: all 0.3s;
         }
         
         .form-control:focus {
             outline: none;
-            border-color: var(--admin-primary);
+            border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
         }
         
-        /* Графики */
-        .chart-container {
-            background: var(--admin-card);
-            border-radius: 16px;
-            padding: 25px;
-            border: 1px solid var(--admin-border);
-            margin-bottom: 30px;
-        }
-        
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .chart-header h3 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 700;
-        }
-        
-        /* Системные предупреждения */
-        .alerts-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .alert {
-            padding: 20px;
-            border-radius: 12px;
-            display: flex;
-            align-items: flex-start;
-            gap: 15px;
-            border-left: 4px solid;
-        }
-        
-        .alert-warning {
-            background: rgba(245, 158, 11, 0.1);
-            border-left-color: var(--admin-warning);
-        }
-        
-        .alert-danger {
-            background: rgba(239, 68, 68, 0.1);
-            border-left-color: var(--admin-danger);
-        }
-        
-        .alert-success {
-            background: rgba(16, 185, 129, 0.1);
-            border-left-color: var(--admin-success);
-        }
-        
-        .alert-info {
-            background: rgba(59, 130, 246, 0.1);
-            border-left-color: var(--admin-info);
-        }
-        
-        .alert-icon {
-            font-size: 20px;
-            flex-shrink: 0;
-        }
-        
-        .alert-content {
-            flex: 1;
-        }
-        
-        .alert-title {
-            font-weight: 700;
-            margin-bottom: 5px;
-            color: var(--admin-text);
-        }
-        
-        .alert-message {
-            color: var(--admin-text-muted);
-            font-size: 14px;
-            line-height: 1.5;
-        }
-        
-        /* AI Обучение */
-        .ai-training-card {
-            background: var(--admin-card);
+        /* Знания AI */
+        .ai-training-section {
+            background: var(--glass-bg);
             border-radius: 16px;
             padding: 30px;
-            border: 1px solid var(--admin-border);
+            border: 1px solid var(--glass-border);
             margin-bottom: 30px;
         }
         
         .training-status {
             display: flex;
             align-items: center;
-            gap: 20px;
-            padding: 25px;
-            background: rgba(0, 0, 0, 0.2);
+            gap: 15px;
+            padding: 20px;
+            background: rgba(30, 41, 59, 0.5);
             border-radius: 12px;
             margin: 20px 0;
         }
         
         .status-indicator {
-            width: 16px;
-            height: 16px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
-            background: var(--admin-success);
+            background: var(--success);
         }
         
         .status-indicator.training {
-            background: var(--admin-warning);
+            background: var(--warning);
             animation: pulse 1.5s infinite;
         }
         
-        .knowledge-base {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
+        .knowledge-items {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
         
         .knowledge-item {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
+            background: rgba(30, 41, 59, 0.5);
             padding: 20px;
-            border: 1px solid var(--admin-border);
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
         }
         
-        /* Адаптивность */
-        @media (max-width: 1200px) {
-            .admin-sidebar {
-                position: fixed;
-                left: -280px;
-                transition: left 0.3s;
-            }
-            
-            .admin-sidebar.active {
-                left: 0;
-            }
-            
-            .admin-main {
-                margin-left: 0;
-            }
-            
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        .knowledge-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
         }
         
-        @media (max-width: 768px) {
-            .admin-header {
-                padding: 20px;
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
-            
-            .header-right {
-                width: 100%;
-                justify-content: space-between;
-            }
-            
-            .admin-content {
-                padding: 20px;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .admin-tabs {
-                overflow-x: auto;
-                flex-wrap: nowrap;
-                padding-bottom: 10px;
-            }
-            
-            .admin-tab {
-                white-space: nowrap;
-            }
-            
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-            
-            .table-header {
-                flex-direction: column;
-                gap: 15px;
-                align-items: stretch;
-            }
-            
-            .table-search {
-                width: 100%;
-            }
-            
-            .admin-table {
-                display: block;
-                overflow-x: auto;
-            }
+        .knowledge-category {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
-        @media (max-width: 480px) {
-            .admin-tab {
-                padding: 10px 15px;
-                font-size: 14px;
-            }
-            
-            .stat-card {
-                padding: 20px;
-            }
-            
-            .stat-value {
-                font-size: 28px;
-            }
-            
-            .form-control {
-                padding: 12px 15px;
-            }
+        .knowledge-text {
+            line-height: 1.6;
+            color: var(--text);
+        }
+        
+        /* Модальные окна */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+        
+        .modal-content {
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border-radius: 20px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            animation: slideInUp 0.4s ease;
+        }
+        
+        .modal-header {
+            padding: 25px 30px;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        
+        .modal-close {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid var(--glass-border);
+            color: var(--text);
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .modal-close:hover {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary);
+        }
+        
+        .modal-body {
+            padding: 30px;
+        }
+        
+        .modal-footer {
+            padding: 20px 30px;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
         }
         
         /* Анимации */
@@ -1710,509 +389,377 @@
         }
         
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
         
-        /* Специальные классы */
-        .user-avatar-small {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: var(--admin-gradient);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        
-        .status-badge {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            display: inline-block;
-        }
-        
-        .status-active {
-            background: rgba(16, 185, 129, 0.2);
-            color: var(--admin-success);
-        }
-        
-        .status-inactive {
-            background: rgba(148, 163, 184, 0.2);
-            color: var(--admin-text-muted);
-        }
-        
-        .status-banned {
-            background: rgba(239, 68, 68, 0.2);
-            color: var(--admin-danger);
-        }
-        
-        .progress-bar {
-            height: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: var(--admin-gradient);
-            border-radius: 4px;
-            transition: width 0.5s ease;
-        }
-        
-        /* Кнопки */
-        .btn-admin-primary {
-            background: var(--admin-gradient);
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .btn-admin-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--admin-shadow);
-        }
-        
-        .btn-admin-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--admin-text);
-            border: 1px solid var(--admin-border);
-            padding: 14px 28px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .btn-admin-secondary:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: var(--admin-primary);
-        }
-        
-        .btn-admin-danger {
-            background: var(--admin-danger);
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .btn-admin-danger:hover {
-            background: #dc2626;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
 <body>
-    <div class="admin-dashboard">
+    <div class="dashboard">
         <!-- Сайдбар -->
-        <aside class="admin-sidebar" id="adminSidebar">
-            <!-- Заголовок -->
+        <aside class="dashboard-sidebar">
             <div class="sidebar-header">
-                <div class="admin-info">
-                    <div class="admin-avatar">A</div>
-                    <div class="admin-details">
-                        <h2>Администратор</h2>
+                <div class="user-info">
+                    <div class="user-avatar">👑</div>
+                    <div class="user-details">
+                        <h3>Администратор</h3>
                         <span class="role">Супер-админ</span>
                     </div>
                 </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
 
-            <!-- Навигация -->
-            <nav class="admin-nav">
-                <a href="#" class="admin-nav-item active" data-tab="dashboard">
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-tab="dashboard">
                     <i class="fas fa-tachometer-alt"></i>
-                    <span>Панель управления</span>
-                    <span class="nav-badge">15</span>
-                </a>
-                
-                <a href="#" class="admin-nav-item" data-tab="users">
+                    <span>Статистика</span>
+                </button>
+                <button class="nav-item" data-tab="users">
                     <i class="fas fa-users"></i>
                     <span>Пользователи</span>
                     <span class="nav-badge" id="usersCount">0</span>
-                </a>
-                
-                <a href="#" class="admin-nav-item" data-tab="classes">
-                    <i class="fas fa-chalkboard-teacher"></i>
-                    <span>Классы и группы</span>
-                </a>
-                
-                <a href="#" class="admin-nav-item" data-tab="tasks">
+                </button>
+                <button class="nav-item" data-tab="tasks">
                     <i class="fas fa-tasks"></i>
-                    <span>Задания и тесты</span>
-                    <span class="nav-badge" id="tasksCount">0</span>
-                </a>
-                
-                <a href="#" class="admin-nav-item" data-tab="content">
-                    <i class="fas fa-book"></i>
-                    <span>Учебный контент</span>
-                </a>
-                
-                <a href="#" class="admin-nav-item" data-tab="ai">
+                    <span>Задания</span>
+                </button>
+                <button class="nav-item" data-tab="ai">
                     <i class="fas fa-robot"></i>
                     <span>AI Обучение</span>
-                    <span class="nav-badge warning" id="aiStatusBadge">1</span>
-                </a>
-                
-                <a href="#" class="admin-nav-item" data-tab="analytics">
-                    <i class="fas fa-chart-network"></i>
-                    <span>Аналитика</span>
-                </a>
-                
-                <a href="#" class="admin-nav-item" data-tab="system">
+                </button>
+                <button class="nav-item" data-tab="system">
                     <i class="fas fa-cog"></i>
-                    <span>Системные настройки</span>
-                </a>
-                
-                <a href="#" class="admin-nav-item" data-tab="logs">
+                    <span>Настройки</span>
+                </button>
+                <button class="nav-item" data-tab="logs">
                     <i class="fas fa-history"></i>
-                    <span>Логи и аудит</span>
+                    <span>Логи</span>
                     <span class="nav-badge" id="logsCount">0</span>
-                </a>
-                
-                <a href="#" class="admin-nav-item" data-tab="backup">
-                    <i class="fas fa-database"></i>
-                    <span>Резервные копии</span>
-                </a>
-                
-                <a href="#" class="admin-nav-item" data-tab="api">
-                    <i class="fas fa-code"></i>
-                    <span>API и интеграции</span>
-                </a>
+                </button>
             </nav>
 
-            <!-- Футер сайдбара -->
             <div class="sidebar-footer">
-                <div class="quick-stats">
-                    <div class="quick-stat">
-                        <span class="value" id="onlineUsers">0</span>
-                        <span class="label">Онлайн</span>
-                    </div>
-                    <div class="quick-stat">
-                        <span class="value" id="activeSessions">0</span>
-                        <span class="label">Сессии</span>
-                    </div>
-                </div>
-                <button class="btn-admin-danger" id="logoutBtn" style="width: 100%; margin-top: 15px;">
-                    <i class="fas fa-sign-out-alt"></i> Выйти
+                <button class="btn-secondary logout-btn" style="width: 100%;">
+                    <i class="fas fa-sign-out-alt"></i> Выйти в систему
                 </button>
             </div>
         </aside>
 
         <!-- Основной контент -->
-        <main class="admin-main">
-            <!-- Шапка -->
-            <header class="admin-header">
+        <main class="dashboard-main">
+            <header class="dashboard-header">
                 <div class="header-left">
-                    <h1>Панель администратора</h1>
-                    <div class="subtitle">Полный контроль над системой Leo Assistant</div>
+                    <div class="mobile-menu-toggle" id="mobileMenuToggle">
+                        <i class="fas fa-bars"></i>
+                    </div>
+                    <div class="header-info">
+                        <h1>Панель администратора</h1>
+                        <p>Управление системой Leo Assistant</p>
+                    </div>
                 </div>
                 <div class="header-right">
-                    <div class="header-btn" id="toggleSidebar">
-                        <i class="fas fa-bars"></i>
-                        <span>Меню</span>
-                    </div>
-                    <div class="header-btn" id="refreshData">
+                    <div class="current-time" id="adminTime">--:--</div>
+                    <button class="btn-icon" id="refreshData" title="Обновить данные">
                         <i class="fas fa-sync-alt"></i>
-                        <span>Обновить</span>
-                    </div>
-                    <div class="header-btn" id="notificationsBtn">
-                        <i class="fas fa-bell"></i>
-                        <span>Уведомления</span>
-                        <span class="nav-badge" id="headerNotifications">3</span>
-                    </div>
-                    <div class="current-time" id="adminTime" style="font-weight: 600; color: var(--admin-primary);">
-                        --:--
-                    </div>
+                    </button>
                 </div>
             </header>
 
-            <!-- Контент -->
-            <div class="admin-content">
-                <!-- Панель управления -->
+            <div class="dashboard-content">
+                <!-- Статистика -->
                 <div class="tab-content active" id="tab-dashboard">
-                    <div class="stats-grid">
-                        <!-- Статистика системы -->
-                        <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-users"></i>
-                            </div>
+                    <div class="admin-stats-grid">
+                        <div class="admin-stat-card primary">
+                            <div class="stat-icon">👥</div>
                             <div class="stat-value" id="statTotalUsers">0</div>
-                            <div class="stat-label">Всего пользователей</div>
-                            <div class="stat-change positive">
-                                <i class="fas fa-arrow-up"></i>
-                                <span id="usersChange">0%</span> за неделю
-                            </div>
+                            <div class="stat-label">Пользователей</div>
                         </div>
-                        
-                        <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-tasks"></i>
-                            </div>
+                        <div class="admin-stat-card success">
+                            <div class="stat-icon">📚</div>
                             <div class="stat-value" id="statTotalTasks">0</div>
-                            <div class="stat-label">Заданий в системе</div>
-                            <div class="stat-change positive">
-                                <i class="fas fa-arrow-up"></i>
-                                <span id="tasksChange">0%</span> за неделю
-                            </div>
+                            <div class="stat-label">Заданий</div>
                         </div>
-                        
-                        <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-robot"></i>
-                            </div>
-                            <div class="stat-value" id="statAIRequests">0</div>
-                            <div class="stat-label">AI запросов</div>
-                            <div class="stat-change positive">
-                                <i class="fas fa-arrow-up"></i>
-                                <span id="aiChange">0%</span> за неделю
-                            </div>
+                        <div class="admin-stat-card warning">
+                            <div class="stat-icon">🤖</div>
+                            <div class="stat-value" id="statAIKnowledge">0</div>
+                            <div class="stat-label">Знаний AI</div>
                         </div>
-                        
-                        <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
-                            <div class="stat-value" id="statActivity">0%</div>
-                            <div class="stat-label">Активность</div>
-                            <div class="stat-change negative">
-                                <i class="fas fa-arrow-down"></i>
-                                <span id="activityChange">0%</span> за неделю
-                            </div>
+                        <div class="admin-stat-card danger">
+                            <div class="stat-icon">⚠️</div>
+                            <div class="stat-value" id="statActiveIssues">0</div>
+                            <div class="stat-label">Проблемы</div>
                         </div>
                     </div>
 
-                    <!-- Быстрые действия -->
-                    <div class="chart-container">
-                        <div class="chart-header">
-                            <h3><i class="fas fa-bolt"></i> Быстрые действия</h3>
+                    <div class="widget">
+                        <div class="widget-header">
+                            <h3><i class="fas fa-chart-line"></i> Активность пользователей</h3>
                         </div>
-                        <div class="quick-actions" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                            <button class="btn-admin-primary" id="quickAddUser">
-                                <i class="fas fa-user-plus"></i> Добавить пользователя
-                            </button>
-                            <button class="btn-admin-primary" id="quickAddTask">
-                                <i class="fas fa-plus-circle"></i> Создать задание
-                            </button>
-                            <button class="btn-admin-primary" id="quickBackup">
-                                <i class="fas fa-save"></i> Создать backup
-                            </button>
-                            <button class="btn-admin-primary" id="quickBroadcast">
-                                <i class="fas fa-bullhorn"></i> Объявление
-                            </button>
+                        <div class="widget-body">
+                            <canvas id="activityChart" width="800" height="300"></canvas>
                         </div>
-                    </div>
-
-                    <!-- Системные предупреждения -->
-                    <div class="chart-container">
-                        <div class="chart-header">
-                            <h3><i class="fas fa-exclamation-triangle"></i> Системные предупреждения</h3>
-                            <button class="btn-admin-secondary" id="clearAlerts">
-                                <i class="fas fa-times"></i> Очистить все
-                            </button>
-                        </div>
-                        <div class="alerts-container" id="systemAlerts">
-                            <!-- Загрузятся через JS -->
-                        </div>
-                    </div>
-
-                    <!-- Последняя активность -->
-                    <div class="admin-table-container">
-                        <div class="table-header">
-                            <h3><i class="fas fa-history"></i> Последняя активность</h3>
-                            <div class="table-actions">
-                                <input type="text" class="table-search" placeholder="Поиск активности...">
-                            </div>
-                        </div>
-                        <table class="admin-table" id="activityTable">
-                            <thead>
-                                <tr>
-                                    <th>Время</th>
-                                    <th>Пользователь</th>
-                                    <th>Действие</th>
-                                    <th>IP адрес</th>
-                                    <th>Статус</th>
-                                </tr>
-                            </thead>
-                            <tbody id="activityTableBody">
-                                <!-- Данные загрузятся через JS -->
-                            </tbody>
-                        </table>
                     </div>
                 </div>
 
                 <!-- Пользователи -->
                 <div class="tab-content" id="tab-users">
-                    <div class="admin-table-container">
-                        <div class="table-header">
-                            <h3><i class="fas fa-users"></i> Управление пользователями</h3>
-                            <div class="table-actions">
-                                <input type="text" class="table-search" id="userSearch" placeholder="Поиск пользователей...">
-                                <button class="btn-admin-primary" id="addUserBtn">
-                                    <i class="fas fa-user-plus"></i> Добавить
-                                </button>
-                                <button class="btn-admin-secondary" id="exportUsers">
-                                    <i class="fas fa-download"></i> Экспорт
-                                </button>
+                    <div class="widget-header" style="margin-bottom: 20px;">
+                        <h3><i class="fas fa-users"></i> Управление пользователями</h3>
+                        <button class="btn-primary" id="addUserBtn">
+                            <i class="fas fa-user-plus"></i> Добавить пользователя
+                        </button>
+                    </div>
+
+                    <div class="widget">
+                        <div class="widget-body">
+                            <table class="users-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Имя</th>
+                                        <th>Логин</th>
+                                        <th>Класс</th>
+                                        <th>Очки</th>
+                                        <th>Уровень</th>
+                                        <th>Зарегистрирован</th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTableBody">
+                                    <!-- Данные загрузятся через JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Форма добавления пользователя -->
+                    <div class="admin-form" id="addUserForm" style="display: none; margin-top: 30px;">
+                        <h3 style="margin-bottom: 25px;">Добавить нового пользователя</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Имя пользователя *</label>
+                                <input type="text" id="newUserName" class="form-control" placeholder="Иван Иванов">
+                            </div>
+                            <div class="form-group">
+                                <label>Логин *</label>
+                                <input type="text" id="newUserLogin" class="form-control" placeholder="ivanov">
                             </div>
                         </div>
-                        <table class="admin-table" id="usersTable">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Пользователь</th>
-                                    <th>Логин</th>
-                                    <th>Класс</th>
-                                    <th>Роль</th>
-                                    <th>Очки</th>
-                                    <th>Статус</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody id="usersTableBody">
-                                <!-- Данные загрузятся через JS -->
-                            </tbody>
-                        </table>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Пароль *</label>
+                                <input type="password" id="newUserPassword" class="form-control" placeholder="••••••••">
+                            </div>
+                            <div class="form-group">
+                                <label>Класс</label>
+                                <select id="newUserClass" class="form-control">
+                                    <option value="7B">7Б класс</option>
+                                    <option value="7A">7А класс</option>
+                                    <option value="8B">8Б класс</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Роль</label>
+                                <select id="newUserRole" class="form-control">
+                                    <option value="student">Ученик</option>
+                                    <option value="teacher">Учитель</option>
+                                    <option value="admin">Администратор</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Начальные очки</label>
+                                <input type="number" id="newUserPoints" class="form-control" value="0">
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 15px; margin-top: 30px;">
+                            <button class="btn-primary" id="saveUserBtn">
+                                <i class="fas fa-save"></i> Сохранить
+                            </button>
+                            <button class="btn-secondary" id="cancelUserBtn">
+                                <i class="fas fa-times"></i> Отмена
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Задания -->
+                <div class="tab-content" id="tab-tasks">
+                    <div class="widget-header" style="margin-bottom: 20px;">
+                        <h3><i class="fas fa-tasks"></i> Управление заданиями</h3>
+                        <button class="btn-primary" onclick="showAddTaskForm()">
+                            <i class="fas fa-plus"></i> Добавить задание
+                        </button>
+                    </div>
+
+                    <div class="widget">
+                        <div class="widget-body">
+                            <div id="tasksList">
+                                <!-- Список заданий загрузится через JS -->
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- AI Обучение -->
                 <div class="tab-content" id="tab-ai">
-                    <div class="ai-training-card">
-                        <div class="table-header">
+                    <div class="ai-training-section">
+                        <div class="widget-header">
                             <h3><i class="fas fa-brain"></i> Обучение нейросети</h3>
-                            <div class="table-actions">
-                                <button class="btn-admin-primary" id="trainAI">
-                                    <i class="fas fa-play"></i> Запустить обучение
-                                </button>
-                                <button class="btn-admin-secondary" id="importKnowledge">
-                                    <i class="fas fa-file-import"></i> Импорт знаний
-                                </button>
-                            </div>
+                            <button class="btn-primary" id="trainAI">
+                                <i class="fas fa-play"></i> Запустить обучение
+                            </button>
                         </div>
-                        
+
                         <div class="training-status">
-                            <div class="status-indicator" id="aiStatusIndicator"></div>
+                            <div class="status-indicator" id="aiStatus"></div>
                             <div class="status-text">
                                 <strong id="aiStatusText">Готов к обучению</strong>
-                                <div id="aiStatusDetails">Нейросеть готова к добавлению новых знаний</div>
+                                <div id="aiStatusDetails" style="font-size: 14px; color: var(--text-muted);">
+                                    Нейросеть готова к добавлению новых знаний
+                                </div>
                             </div>
-                            <div class="status-progress">
+                            <div class="status-progress" style="margin-left: auto;">
                                 <div style="font-size: 24px; font-weight: 700;" id="aiProgress">100%</div>
-                                <div style="font-size: 12px; color: var(--admin-text-muted);">Обучено</div>
                             </div>
                         </div>
-                        
-                        <div class="knowledge-base" id="knowledgeBase">
-                            <!-- Загрузятся через JS -->
+
+                        <div class="knowledge-items" id="knowledgeList">
+                            <!-- Список знаний загрузится через JS -->
+                        </div>
+                    </div>
+
+                    <div class="admin-form">
+                        <h3 style="margin-bottom: 25px;">Добавить новые знания</h3>
+                        <div class="form-group">
+                            <label>Категория *</label>
+                            <select id="knowledgeCategory" class="form-control">
+                                <option value="greetings">Приветствия</option>
+                                <option value="subjects">Предметы</option>
+                                <option value="tasks">Задания</option>
+                                <option value="schedule">Расписание</option>
+                                <option value="general">Общее</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Ключевые слова (через запятую) *</label>
+                            <input type="text" id="knowledgeKeywords" class="form-control" 
+                                   placeholder="привет, здравствуй, добрый день">
+                        </div>
+                        <div class="form-group">
+                            <label>Ответ AI *</label>
+                            <textarea id="knowledgeAnswer" class="form-control" rows="4" 
+                                      placeholder="Введите ответ, который должен давать AI..."></textarea>
+                        </div>
+                        <div style="display: flex; gap: 15px; margin-top: 30px;">
+                            <button class="btn-primary" id="saveKnowledge">
+                                <i class="fas fa-save"></i> Добавить знания
+                            </button>
+                            <button class="btn-secondary" id="clearKnowledge">
+                                <i class="fas fa-trash"></i> Очистить
+                            </button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Системные настройки -->
+                <!-- Настройки -->
                 <div class="tab-content" id="tab-system">
                     <div class="admin-form">
                         <h3 style="margin-bottom: 25px;">Системные настройки</h3>
                         
-                        <div class="form-section">
-                            <h3>Основные настройки</h3>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Название системы</label>
-                                    <input type="text" id="systemName" class="form-control" value="Leo Assistant">
-                                </div>
-                                <div class="form-group">
-                                    <label>Версия системы</label>
-                                    <input type="text" id="systemVersion" class="form-control" value="2.0" readonly>
-                                </div>
-                            </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Класс по умолчанию</label>
-                                    <select id="defaultClass" class="form-control">
-                                        <option value="7B">7Б класс</option>
-                                        <option value="7A">7А класс</option>
-                                        <option value="8B">8Б класс</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Очки за задание</label>
-                                    <input type="number" id="pointsPerTask" class="form-control" value="50">
-                                </div>
-                            </div>
+                        <div class="form-group">
+                            <label>Название системы</label>
+                            <input type="text" id="systemName" class="form-control" value="Leo Assistant">
                         </div>
                         
-                        <div class="form-section">
-                            <h3>Безопасность</h3>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Пароль администратора</label>
-                                    <input type="password" id="adminPassword" class="form-control" placeholder="Новый пароль">
-                                </div>
-                                <div class="form-group">
-                                    <label>Подтверждение пароля</label>
-                                    <input type="password" id="adminPasswordConfirm" class="form-control" placeholder="Подтвердите пароль">
-                                </div>
-                            </div>
-                            
+                        <div class="form-row">
                             <div class="form-group">
-                                <label>Сессии пользователей (дни)</label>
-                                <input type="number" id="sessionDuration" class="form-control" value="7" min="1" max="30">
+                                <label>Класс по умолчанию</label>
+                                <select id="defaultClass" class="form-control">
+                                    <option value="7B">7Б класс</option>
+                                    <option value="7A">7А класс</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Очки за задание</label>
+                                <input type="number" id="pointsPerTask" class="form-control" value="50">
                             </div>
                         </div>
                         
-                        <div class="form-section">
-                            <h3>Автоматизация</h3>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Автоматическое резервное копирование</label>
-                                    <select id="autoBackup" class="form-control">
-                                        <option value="daily">Ежедневно</option>
-                                        <option value="weekly">Еженедельно</option>
-                                        <option value="monthly">Ежемесячно</option>
-                                        <option value="never">Никогда</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Очистка логов (дни)</label>
-                                    <input type="number" id="logsRetention" class="form-control" value="30">
-                                </div>
-                            </div>
+                        <div class="form-group">
+                            <label>Пароль администратора</label>
+                            <input type="password" id="adminPassword" class="form-control" placeholder="Введите новый пароль">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Автоматическое резервное копирование</label>
+                            <select id="autoBackup" class="form-control">
+                                <option value="daily">Ежедневно</option>
+                                <option value="weekly">Еженедельно</option>
+                                <option value="monthly">Ежемесячно</option>
+                                <option value="never">Никогда</option>
+                            </select>
                         </div>
                         
                         <div style="display: flex; gap: 15px; margin-top: 30px;">
-                            <button class="btn-admin-primary" id="saveSettings">
+                            <button class="btn-primary" id="saveSettings">
                                 <i class="fas fa-save"></i> Сохранить настройки
                             </button>
-                            <button class="btn-admin-secondary" id="testSettings">
-                                <i class="fas fa-vial"></i> Тестировать
+                            <button class="btn-danger" id="resetSettings">
+                                <i class="fas fa-undo"></i> Сбросить к стандартным
                             </button>
-                            <button class="btn-admin-danger" id="resetSettings">
-                                <i class="fas fa-undo"></i> Сбросить
-                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="widget" style="margin-top: 30px;">
+                        <div class="widget-header">
+                            <h3><i class="fas fa-database"></i> Управление базой данных</h3>
+                        </div>
+                        <div class="widget-body">
+                            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                                <button class="btn-primary" id="backupDB">
+                                    <i class="fas fa-download"></i> Создать резервную копию
+                                </button>
+                                <button class="btn-warning" id="restoreDB">
+                                    <i class="fas fa-upload"></i> Восстановить из копии
+                                </button>
+                                <button class="btn-danger" id="clearDB">
+                                    <i class="fas fa-trash"></i> Очистить все данные
+                                </button>
+                            </div>
+                            <div style="margin-top: 20px; padding: 15px; background: rgba(30, 41, 59, 0.5); border-radius: 10px;">
+                                <strong>Размер базы данных:</strong> <span id="dbSize">0 KB</span>
+                                <br>
+                                <strong>Последнее обновление:</strong> <span id="dbLastUpdate">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Логи -->
+                <div class="tab-content" id="tab-logs">
+                    <div class="widget">
+                        <div class="widget-header">
+                            <h3><i class="fas fa-history"></i> Системные логи</h3>
+                        </div>
+                        <div class="widget-body">
+                            <div id="logsList" style="max-height: 500px; overflow-y: auto;">
+                                <!-- Логи загрузятся через JS -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2220,141 +767,114 @@
         </main>
     </div>
 
-    <!-- JavaScript -->
+    <!-- Модальное окно для добавления задания -->
+    <div class="modal" id="addTaskModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="taskFormTitle">Добавить задание</h3>
+                <button class="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="taskForm">
+                    <input type="hidden" id="taskId" value="">
+                    
+                    <div class="form-group">
+                        <label for="taskSubject">Предмет *</label>
+                        <select id="taskSubject" class="form-control" required>
+                            <option value="">Выберите предмет</option>
+                            <option value="Математика">Математика</option>
+                            <option value="Русский язык">Русский язык</option>
+                            <option value="Физика">Физика</option>
+                            <option value="История">История</option>
+                            <option value="Английский">Английский</option>
+                            <option value="Информатика">Информатика</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="taskTitle">Название задания *</label>
+                        <input type="text" id="taskTitle" class="form-control" placeholder="Например: №345-348 стр. 45" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="taskDescription">Описание</label>
+                        <textarea id="taskDescription" class="form-control" rows="3" placeholder="Подробное описание задания..."></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="taskPriority">Приоритет</label>
+                            <select id="taskPriority" class="form-control">
+                                <option value="low">Низкий</option>
+                                <option value="medium" selected>Средний</option>
+                                <option value="high">Высокий</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="taskDueDate">Срок сдачи</label>
+                            <input type="date" id="taskDueDate" class="form-control">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="document.getElementById('addTaskModal').style.display='none'">
+                    Отмена
+                </button>
+                <button id="saveTaskBtn" class="btn-primary">
+                    <i class="fas fa-save"></i> Сохранить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно подтверждения -->
+    <div class="modal" id="confirmModal" style="display: none;">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3 id="confirmTitle">Подтверждение</h3>
+                <button class="modal-close" onclick="document.getElementById('confirmModal').style.display='none'">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">Вы уверены?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="document.getElementById('confirmModal').style.display='none'">
+                    Отмена
+                </button>
+                <button id="confirmAction" class="btn-danger">
+                    Подтвердить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ОБЯЗАТЕЛЬНО ПОДКЛЮЧИТЬ В ТАКОМ ПОРЯДКЕ -->
     <script src="js/database.js"></script>
     <script src="js/admin.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Инициализация времени -->
+    <!-- Инициализация -->
     <script>
-        function updateTime() {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('ru-RU', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                second: '2-digit'
-            });
-            document.getElementById('adminTime').textContent = timeStr;
-        }
-        
-        setInterval(updateTime, 1000);
-        updateTime();
+        // Проверяем что все скрипты загружены
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM загружен, проверяем скрипты...');
+            console.log('leoDB доступен?', typeof leoDB !== 'undefined');
+            console.log('initAdminPanel доступен?', typeof initAdminPanel !== 'undefined');
+            
+            // Даем время на загрузку всех скриптов
+            setTimeout(() => {
+                if (typeof initAdminPanel === 'function') {
+                    initAdminPanel();
+                } else {
+                    console.error('Функция initAdminPanel не найдена!');
+                }
+            }, 500);
+        });
     </script>
-    <!-- Мобильная навигация -->
-<div class="mobile-nav" style="display: none;">
-    <a href="#" class="mobile-nav-item active" data-tab="dashboard">
-        <i class="fas fa-tachometer-alt"></i>
-        <span>Статистика</span>
-    </a>
-    <a href="#" class="mobile-nav-item" data-tab="users">
-        <i class="fas fa-users"></i>
-        <span>Пользователи</span>
-    </a>
-    <a href="#" class="mobile-nav-item" data-tab="tasks">
-        <i class="fas fa-tasks"></i>
-        <span>Задания</span>
-    </a>
-    <a href="#" class="mobile-nav-item" data-tab="system">
-        <i class="fas fa-cog"></i>
-        <span>Настройки</span>
-    </a>
-</div>
-
-<!-- Кнопка мобильного меню (добавить в header-right) -->
-<button class="mobile-menu-toggle" id="mobileMenuToggle">
-    <i class="fas fa-bars"></i>
-    
-</button>
-    <!-- Добавьте этот код после существующего HTML в admin.html -->
-
-<!-- Модальное окно для добавления/редактирования задания -->
-<div class="modal" id="addTaskModal" style="display: none;">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 id="taskFormTitle">Добавить задание</h3>
-            <button class="modal-close">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="modal-body">
-            <form id="taskForm">
-                <input type="hidden" id="taskId" value="">
-                
-                <div class="form-group">
-                    <label for="taskSubject">Предмет *</label>
-                    <select id="taskSubject" class="form-control" required>
-                        <option value="">Выберите предмет</option>
-                        <option value="Математика">Математика</option>
-                        <option value="Русский язык">Русский язык</option>
-                        <option value="Физика">Физика</option>
-                        <option value="История">История</option>
-                        <option value="Английский">Английский</option>
-                        <option value="Информатика">Информатика</option>
-                        <option value="Биология">Биология</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="taskTitle">Название задания *</label>
-                    <input type="text" id="taskTitle" class="form-control" placeholder="Например: №345-348 стр. 45" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="taskDescription">Описание</label>
-                    <textarea id="taskDescription" class="form-control" rows="3" placeholder="Подробное описание задания..."></textarea>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="taskPriority">Приоритет</label>
-                        <select id="taskPriority" class="form-control">
-                            <option value="low">Низкий</option>
-                            <option value="medium" selected>Средний</option>
-                            <option value="high">Высокий</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="taskDueDate">Срок сдачи</label>
-                        <input type="date" id="taskDueDate" class="form-control">
-                    </div>
-                </div>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button class="btn-secondary" onclick="document.getElementById('addTaskModal').style.display='none'">
-                Отмена
-            </button>
-            <button id="saveTaskBtn" class="btn-primary">
-                <i class="fas fa-save"></i> Сохранить
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Модальное окно подтверждения удаления -->
-<div class="modal" id="confirmModal" style="display: none;">
-    <div class="modal-content" style="max-width: 400px;">
-        <div class="modal-header">
-            <h3 id="confirmTitle">Подтверждение</h3>
-            <button class="modal-close" onclick="document.getElementById('confirmModal').style.display='none'">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="modal-body">
-            <p id="confirmMessage">Вы уверены?</p>
-        </div>
-        <div class="modal-footer">
-            <button class="btn-secondary" onclick="document.getElementById('confirmModal').style.display='none'">
-                Отмена
-            </button>
-            <button id="confirmAction" class="btn-danger">
-                Подтвердить
-            </button>
-        </div>
-    </div>
-</div>
 </body>
 </html>
-
-
-

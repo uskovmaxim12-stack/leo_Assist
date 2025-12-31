@@ -4,14 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leo Assistant - Админ-панель</title>
-    <!-- ПОДКЛЮЧАЕМ ВСЕ НУЖНЫЕ СТИЛИ -->
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Стили специально для админки -->
     <style>
-        /* Админ-специфичные стили */
+        /* Специфичные стили для админ-панели */
         .admin-stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -25,7 +22,7 @@
             padding: 25px;
             border: 1px solid var(--glass-border);
             text-align: center;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s;
             backdrop-filter: blur(10px);
         }
         
@@ -36,31 +33,36 @@
         }
         
         .admin-stat-card.primary {
-            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05));
+            border-color: rgba(59, 130, 246, 0.3);
         }
         
         .admin-stat-card.success {
-            border-color: var(--success);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+            border-color: rgba(16, 185, 129, 0.3);
         }
         
         .admin-stat-card.warning {
-            border-color: var(--warning);
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
+            border-color: rgba(245, 158, 11, 0.3);
         }
         
         .admin-stat-card.danger {
-            border-color: var(--danger);
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+            border-color: rgba(239, 68, 68, 0.3);
         }
         
         .stat-icon {
             font-size: 32px;
             margin-bottom: 15px;
+            display: block;
         }
         
         .stat-value {
             font-size: 36px;
             font-weight: 800;
             margin: 10px 0;
-            color: var(--text);
+            display: block;
         }
         
         .stat-label {
@@ -70,44 +72,40 @@
             letter-spacing: 0.5px;
         }
         
-        /* Вкладки админки */
         .admin-tabs {
             display: flex;
             gap: 10px;
             margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
             flex-wrap: wrap;
         }
         
         .admin-tab {
             padding: 12px 24px;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
+            background: none;
+            border: none;
             border-radius: 12px;
             color: var(--text-muted);
             cursor: pointer;
             font-weight: 600;
             transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            white-space: nowrap;
         }
         
         .admin-tab:hover {
-            background: rgba(59, 130, 246, 0.1);
+            background: rgba(var(--primary-rgb), 0.1);
             color: var(--text);
-            border-color: rgba(59, 130, 246, 0.3);
         }
         
         .admin-tab.active {
             background: var(--primary);
             color: white;
-            border-color: var(--primary);
         }
         
-        /* Контент вкладок */
         .tab-content {
             display: none;
-            animation: fadeIn 0.4s ease;
+            animation: fadeIn 0.3s;
         }
         
         .tab-content.active {
@@ -115,13 +113,17 @@
         }
         
         /* Таблица пользователей */
+        .users-table-container {
+            background: var(--glass-bg);
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        
         .users-table {
             width: 100%;
             border-collapse: collapse;
-            background: var(--glass-bg);
-            border-radius: 16px;
-            overflow: hidden;
-            border: 1px solid var(--glass-border);
         }
         
         .users-table th {
@@ -130,19 +132,23 @@
             text-align: left;
             font-weight: 700;
             color: var(--text-muted);
-            border-bottom: 2px solid var(--glass-border);
-            text-transform: uppercase;
+            border-bottom: 2px solid var(--border);
             font-size: 13px;
+            text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         
         .users-table td {
             padding: 18px 20px;
-            border-bottom: 1px solid var(--glass-border);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+        }
+        
+        .users-table tr:last-child td {
+            border-bottom: none;
         }
         
         .users-table tr:hover {
-            background: rgba(59, 130, 246, 0.03);
+            background: rgba(59, 130, 246, 0.05);
         }
         
         /* Кнопки действий */
@@ -158,10 +164,14 @@
             border: none;
             cursor: pointer;
             font-size: 14px;
-            transition: all 0.2s;
-            display: flex;
+            transition: all 0.3s;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
+        }
+        
+        .btn-action:hover {
+            transform: translateY(-2px);
         }
         
         .btn-edit {
@@ -171,7 +181,6 @@
         
         .btn-edit:hover {
             background: rgba(59, 130, 246, 0.2);
-            transform: translateY(-2px);
         }
         
         .btn-delete {
@@ -181,7 +190,6 @@
         
         .btn-delete:hover {
             background: rgba(239, 68, 68, 0.2);
-            transform: translateY(-2px);
         }
         
         .btn-reset {
@@ -191,17 +199,16 @@
         
         .btn-reset:hover {
             background: rgba(245, 158, 11, 0.2);
-            transform: translateY(-2px);
         }
         
-        /* Форма добавления пользователя */
+        /* Формы админки */
         .admin-form {
             background: var(--glass-bg);
-            border-radius: 16px;
+            border-radius: 20px;
             padding: 30px;
             border: 1px solid var(--glass-border);
             max-width: 600px;
-            margin: 0 auto;
+            margin: 0 auto 30px;
         }
         
         .form-row {
@@ -226,14 +233,15 @@
             margin-bottom: 8px;
             font-weight: 600;
             color: var(--text);
+            font-size: 14px;
         }
         
         .form-control {
             width: 100%;
             padding: 14px 18px;
             background: var(--background);
-            border: 2px solid var(--glass-border);
-            border-radius: 10px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
             color: var(--text);
             font-size: 15px;
             transition: all 0.3s;
@@ -245,10 +253,10 @@
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
         }
         
-        /* Знания AI */
+        /* AI обучение */
         .ai-training-section {
             background: var(--glass-bg);
-            border-radius: 16px;
+            border-radius: 20px;
             padding: 30px;
             border: 1px solid var(--glass-border);
             margin-bottom: 30px;
@@ -262,6 +270,7 @@
             background: rgba(30, 41, 59, 0.5);
             border-radius: 12px;
             margin: 20px 0;
+            border: 1px solid rgba(59, 130, 246, 0.1);
         }
         
         .status-indicator {
@@ -286,7 +295,7 @@
             background: rgba(30, 41, 59, 0.5);
             padding: 20px;
             border-radius: 12px;
-            border: 1px solid var(--glass-border);
+            border: 1px solid rgba(59, 130, 246, 0.1);
         }
         
         .knowledge-header {
@@ -309,6 +318,45 @@
             color: var(--text);
         }
         
+        /* Задания */
+        .tasks-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .subject-tasks-card {
+            background: var(--glass-bg);
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            overflow: hidden;
+        }
+        
+        .subject-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .subject-header h3 {
+            margin: 0;
+            font-size: 18px;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .subject-task-count {
+            font-size: 14px;
+            color: var(--text-muted);
+            background: rgba(59, 130, 246, 0.1);
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+        
         /* Модальные окна */
         .modal {
             position: fixed;
@@ -322,22 +370,24 @@
             justify-content: center;
             z-index: 2000;
             padding: 20px;
+            animation: fadeIn 0.3s ease;
         }
         
         .modal-content {
             width: 100%;
-            max-width: 600px;
+            max-width: 500px;
             max-height: 90vh;
             overflow-y: auto;
-            border-radius: 20px;
             background: var(--glass-bg);
+            border-radius: 20px;
             border: 1px solid var(--glass-border);
-            animation: slideInUp 0.4s ease;
+            animation: slideInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(20px);
         }
         
         .modal-header {
             padding: 25px 30px;
-            border-bottom: 1px solid var(--glass-border);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -355,7 +405,7 @@
             height: 40px;
             border-radius: 12px;
             background: rgba(30, 41, 59, 0.7);
-            border: 1px solid var(--glass-border);
+            border: 1px solid rgba(59, 130, 246, 0.1);
             color: var(--text);
             font-size: 24px;
             display: flex;
@@ -375,11 +425,127 @@
         }
         
         .modal-footer {
-            padding: 20px 30px;
-            border-top: 1px solid var(--glass-border);
+            padding: 25px 30px;
+            border-top: 1px solid rgba(59, 130, 246, 0.1);
             display: flex;
             justify-content: flex-end;
             gap: 12px;
+        }
+        
+        /* График */
+        .chart-container {
+            background: var(--glass-bg);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid var(--glass-border);
+            margin-bottom: 30px;
+        }
+        
+        /* Логи */
+        .logs-container {
+            background: var(--glass-bg);
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        .log-item {
+            display: flex;
+            gap: 15px;
+            padding: 20px;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+            transition: background 0.3s;
+        }
+        
+        .log-item:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
+        .log-item:last-child {
+            border-bottom: none;
+        }
+        
+        .log-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(59, 130, 246, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+        
+        .log-content {
+            flex: 1;
+        }
+        
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .log-user {
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        .log-time {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        
+        .log-details {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .admin-tabs {
+                overflow-x: auto;
+                padding-bottom: 10px;
+            }
+            
+            .users-table {
+                display: block;
+                overflow-x: auto;
+            }
+            
+            .users-table th,
+            .users-table td {
+                min-width: 120px;
+            }
+            
+            .admin-form {
+                padding: 20px;
+                margin: 0 15px 30px;
+            }
+            
+            .modal-content {
+                margin: 0 15px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .admin-stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .user-actions {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .btn-action {
+                width: 32px;
+                height: 32px;
+            }
         }
         
         /* Анимации */
@@ -411,44 +577,35 @@
         <aside class="dashboard-sidebar">
             <div class="sidebar-header">
                 <div class="user-info">
-                    <div class="user-avatar">👑</div>
+                    <div class="user-avatar" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">👑</div>
                     <div class="user-details">
                         <h3>Администратор</h3>
                         <span class="role">Супер-админ</span>
                     </div>
                 </div>
-                <button class="sidebar-toggle" id="sidebarToggle">
-                    <i class="fas fa-bars"></i>
-                </button>
             </div>
 
             <nav class="sidebar-nav">
-                <button class="nav-item active" data-tab="dashboard">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Статистика</span>
-                </button>
-                <button class="nav-item" data-tab="users">
-                    <i class="fas fa-users"></i>
-                    <span>Пользователи</span>
+                <a href="#" class="nav-item active" data-tab="dashboard">
+                    <i class="fas fa-tachometer-alt"></i> Статистика
+                </a>
+                <a href="#" class="nav-item" data-tab="users">
+                    <i class="fas fa-users"></i> Пользователи
                     <span class="nav-badge" id="usersCount">0</span>
-                </button>
-                <button class="nav-item" data-tab="tasks">
-                    <i class="fas fa-tasks"></i>
-                    <span>Задания</span>
-                </button>
-                <button class="nav-item" data-tab="ai">
-                    <i class="fas fa-robot"></i>
-                    <span>AI Обучение</span>
-                </button>
-                <button class="nav-item" data-tab="system">
-                    <i class="fas fa-cog"></i>
-                    <span>Настройки</span>
-                </button>
-                <button class="nav-item" data-tab="logs">
-                    <i class="fas fa-history"></i>
-                    <span>Логи</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="tasks">
+                    <i class="fas fa-tasks"></i> Задания
+                </a>
+                <a href="#" class="nav-item" data-tab="ai">
+                    <i class="fas fa-robot"></i> AI Обучение
+                </a>
+                <a href="#" class="nav-item" data-tab="system">
+                    <i class="fas fa-cog"></i> Настройки
+                </a>
+                <a href="#" class="nav-item" data-tab="logs">
+                    <i class="fas fa-history"></i> Логи
                     <span class="nav-badge" id="logsCount">0</span>
-                </button>
+                </a>
             </nav>
 
             <div class="sidebar-footer">
@@ -462,13 +619,8 @@
         <main class="dashboard-main">
             <header class="dashboard-header">
                 <div class="header-left">
-                    <div class="mobile-menu-toggle" id="mobileMenuToggle">
-                        <i class="fas fa-bars"></i>
-                    </div>
-                    <div class="header-info">
-                        <h1>Панель администратора</h1>
-                        <p>Управление системой Leo Assistant</p>
-                    </div>
+                    <h1>Панель администратора</h1>
+                    <p>Управление системой Leo Assistant</p>
                 </div>
                 <div class="header-right">
                     <div class="current-time" id="adminTime">--:--</div>
@@ -504,50 +656,96 @@
                         </div>
                     </div>
 
-                    <div class="widget">
-                        <div class="widget-header">
-                            <h3><i class="fas fa-chart-line"></i> Активность пользователей</h3>
+                    <div class="chart-container">
+                        <h3 style="margin-bottom: 20px; color: var(--text);">
+                            <i class="fas fa-chart-line"></i> Активность пользователей
+                        </h3>
+                        <canvas id="activityChart" width="800" height="300"></canvas>
+                    </div>
+
+                    <div class="widgets-grid" style="margin-top: 30px;">
+                        <div class="widget">
+                            <div class="widget-header">
+                                <h3><i class="fas fa-user-clock"></i> Системная информация</h3>
+                            </div>
+                            <div class="widget-body">
+                                <div id="systemInfo">
+                                    <div class="info-item">
+                                        <span class="info-label">Версия системы:</span>
+                                        <span class="info-value" id="systemVersion">2.0</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Всего входов:</span>
+                                        <span class="info-value" id="totalLogins">0</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Размер БД:</span>
+                                        <span class="info-value" id="dbSize">0 KB</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Последнее обновление:</span>
+                                        <span class="info-value" id="dbLastUpdate">--:--</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="widget-body">
-                            <canvas id="activityChart" width="800" height="300"></canvas>
+
+                        <div class="widget">
+                            <div class="widget-header">
+                                <h3><i class="fas fa-exclamation-circle"></i> Быстрые действия</h3>
+                            </div>
+                            <div class="widget-body">
+                                <div class="quick-actions">
+                                    <button class="btn-secondary" onclick="showTab('users')" style="width: 100%; margin-bottom: 10px;">
+                                        <i class="fas fa-user-plus"></i> Добавить пользователя
+                                    </button>
+                                    <button class="btn-secondary" onclick="showTab('tasks')" style="width: 100%; margin-bottom: 10px;">
+                                        <i class="fas fa-tasks"></i> Добавить задание
+                                    </button>
+                                    <button class="btn-secondary" onclick="backupDatabase()" style="width: 100%;">
+                                        <i class="fas fa-download"></i> Создать резервную копию
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Пользователи -->
                 <div class="tab-content" id="tab-users">
-                    <div class="widget-header" style="margin-bottom: 20px;">
-                        <h3><i class="fas fa-users"></i> Управление пользователями</h3>
+                    <div class="widget-header" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h3><i class="fas fa-users"></i> Управление пользователями</h3>
+                            <p style="margin: 5px 0 0; color: var(--text-muted);">Всего пользователей: <span id="totalUsersCount">0</span></p>
+                        </div>
                         <button class="btn-primary" id="addUserBtn">
                             <i class="fas fa-user-plus"></i> Добавить пользователя
                         </button>
                     </div>
 
-                    <div class="widget">
-                        <div class="widget-body">
-                            <table class="users-table">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Имя</th>
-                                        <th>Логин</th>
-                                        <th>Класс</th>
-                                        <th>Очки</th>
-                                        <th>Уровень</th>
-                                        <th>Зарегистрирован</th>
-                                        <th>Действия</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="usersTableBody">
-                                    <!-- Данные загрузятся через JS -->
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="users-table-container">
+                        <table class="users-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Имя</th>
+                                    <th>Логин</th>
+                                    <th>Класс</th>
+                                    <th>Очки</th>
+                                    <th>Уровень</th>
+                                    <th>Зарегистрирован</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <!-- Данные загрузятся через JS -->
+                            </tbody>
+                        </table>
                     </div>
 
-                    <!-- Форма добавления пользователя -->
-                    <div class="admin-form" id="addUserForm" style="display: none; margin-top: 30px;">
-                        <h3 style="margin-bottom: 25px;">Добавить нового пользователя</h3>
+                    <!-- Форма добавления/редактирования пользователя -->
+                    <div class="admin-form" id="addUserForm" style="display: none;">
+                        <h3 style="margin-bottom: 25px;" id="userFormTitle">Добавить нового пользователя</h3>
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Имя пользователя *</label>
@@ -568,7 +766,6 @@
                                 <select id="newUserClass" class="form-control">
                                     <option value="7B">7Б класс</option>
                                     <option value="7A">7А класс</option>
-                                    <option value="8B">8Б класс</option>
                                 </select>
                             </div>
                         </div>
@@ -599,19 +796,18 @@
 
                 <!-- Задания -->
                 <div class="tab-content" id="tab-tasks">
-                    <div class="widget-header" style="margin-bottom: 20px;">
-                        <h3><i class="fas fa-tasks"></i> Управление заданиями</h3>
+                    <div class="widget-header" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h3><i class="fas fa-tasks"></i> Управление заданиями</h3>
+                            <p style="margin: 5px 0 0; color: var(--text-muted);">Всего заданий: <span id="totalTasksCount">0</span></p>
+                        </div>
                         <button class="btn-primary" onclick="showAddTaskForm()">
                             <i class="fas fa-plus"></i> Добавить задание
                         </button>
                     </div>
 
-                    <div class="widget">
-                        <div class="widget-body">
-                            <div id="tasksList">
-                                <!-- Список заданий загрузится через JS -->
-                            </div>
-                        </div>
+                    <div class="tasks-container" id="tasksList">
+                        <!-- Задания загрузятся через JS -->
                     </div>
                 </div>
 
@@ -639,7 +835,7 @@
                         </div>
 
                         <div class="knowledge-items" id="knowledgeList">
-                            <!-- Список знаний загрузится через JS -->
+                            <!-- Знания загрузятся через JS -->
                         </div>
                     </div>
 
@@ -734,17 +930,12 @@
                                 <button class="btn-primary" id="backupDB">
                                     <i class="fas fa-download"></i> Создать резервную копию
                                 </button>
-                                <button class="btn-warning" id="restoreDB">
-                                    <i class="fas fa-upload"></i> Восстановить из копии
+                                <button class="btn-warning" onclick="showTab('ai')">
+                                    <i class="fas fa-robot"></i> Обучить AI
                                 </button>
                                 <button class="btn-danger" id="clearDB">
                                     <i class="fas fa-trash"></i> Очистить все данные
                                 </button>
-                            </div>
-                            <div style="margin-top: 20px; padding: 15px; background: rgba(30, 41, 59, 0.5); border-radius: 10px;">
-                                <strong>Размер базы данных:</strong> <span id="dbSize">0 KB</span>
-                                <br>
-                                <strong>Последнее обновление:</strong> <span id="dbLastUpdate">--</span>
                             </div>
                         </div>
                     </div>
@@ -752,60 +943,54 @@
 
                 <!-- Логи -->
                 <div class="tab-content" id="tab-logs">
-                    <div class="widget">
-                        <div class="widget-header">
-                            <h3><i class="fas fa-history"></i> Системные логи</h3>
-                        </div>
-                        <div class="widget-body">
-                            <div id="logsList" style="max-height: 500px; overflow-y: auto;">
-                                <!-- Логи загрузятся через JS -->
-                            </div>
-                        </div>
+                    <div class="widget-header" style="margin-bottom: 20px;">
+                        <h3><i class="fas fa-history"></i> Системные логи</h3>
+                        <p style="margin: 5px 0 0; color: var(--text-muted);">Последние действия в системе</p>
+                    </div>
+
+                    <div class="logs-container" id="logsList">
+                        <!-- Логи загрузятся через JS -->
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Модальное окно для добавления задания -->
-    <div class="modal" id="addTaskModal" style="display: none;">
+    <!-- Модальное окно для заданий -->
+    <div class="modal" id="taskModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="taskFormTitle">Добавить задание</h3>
-                <button class="modal-close">
+                <h3 id="taskModalTitle">Добавить задание</h3>
+                <button class="modal-close" onclick="closeModal('taskModal')">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="modal-body">
                 <form id="taskForm">
-                    <input type="hidden" id="taskId" value="">
-                    
+                    <input type="hidden" id="taskId">
                     <div class="form-group">
-                        <label for="taskSubject">Предмет *</label>
+                        <label>Предмет *</label>
                         <select id="taskSubject" class="form-control" required>
                             <option value="">Выберите предмет</option>
                             <option value="Математика">Математика</option>
                             <option value="Русский язык">Русский язык</option>
                             <option value="Физика">Физика</option>
                             <option value="История">История</option>
-                            <option value="Английский">Английский</option>
+                            <option value="Английский язык">Английский язык</option>
                             <option value="Информатика">Информатика</option>
                         </select>
                     </div>
-                    
                     <div class="form-group">
-                        <label for="taskTitle">Название задания *</label>
+                        <label>Название задания *</label>
                         <input type="text" id="taskTitle" class="form-control" placeholder="Например: №345-348 стр. 45" required>
                     </div>
-                    
                     <div class="form-group">
-                        <label for="taskDescription">Описание</label>
+                        <label>Описание</label>
                         <textarea id="taskDescription" class="form-control" rows="3" placeholder="Подробное описание задания..."></textarea>
                     </div>
-                    
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="taskPriority">Приоритет</label>
+                            <label>Приоритет</label>
                             <select id="taskPriority" class="form-control">
                                 <option value="low">Низкий</option>
                                 <option value="medium" selected>Средний</option>
@@ -813,17 +998,17 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="taskDueDate">Срок сдачи</label>
+                            <label>Срок сдачи</label>
                             <input type="date" id="taskDueDate" class="form-control">
                         </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button class="btn-secondary" onclick="document.getElementById('addTaskModal').style.display='none'">
+                <button class="btn-secondary" onclick="closeModal('taskModal')">
                     Отмена
                 </button>
-                <button id="saveTaskBtn" class="btn-primary">
+                <button class="btn-primary" onclick="saveTask()">
                     <i class="fas fa-save"></i> Сохранить
                 </button>
             </div>
@@ -831,11 +1016,11 @@
     </div>
 
     <!-- Модальное окно подтверждения -->
-    <div class="modal" id="confirmModal" style="display: none;">
+    <div class="modal" id="confirmModal">
         <div class="modal-content" style="max-width: 400px;">
             <div class="modal-header">
                 <h3 id="confirmTitle">Подтверждение</h3>
-                <button class="modal-close" onclick="document.getElementById('confirmModal').style.display='none'">
+                <button class="modal-close" onclick="closeModal('confirmModal')">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -843,37 +1028,70 @@
                 <p id="confirmMessage">Вы уверены?</p>
             </div>
             <div class="modal-footer">
-                <button class="btn-secondary" onclick="document.getElementById('confirmModal').style.display='none'">
+                <button class="btn-secondary" onclick="closeModal('confirmModal')">
                     Отмена
                 </button>
-                <button id="confirmAction" class="btn-danger">
+                <button class="btn-danger" onclick="confirmAction()">
                     Подтвердить
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- ОБЯЗАТЕЛЬНО ПОДКЛЮЧИТЬ В ТАКОМ ПОРЯДКЕ -->
+    <!-- JavaScript -->
     <script src="js/database.js"></script>
     <script src="js/admin.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Инициализация -->
     <script>
-        // Проверяем что все скрипты загружены
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM загружен, проверяем скрипты...');
-            console.log('leoDB доступен?', typeof leoDB !== 'undefined');
-            console.log('initAdminPanel доступен?', typeof initAdminPanel !== 'undefined');
-            
-            // Даем время на загрузку всех скриптов
-            setTimeout(() => {
-                if (typeof initAdminPanel === 'function') {
-                    initAdminPanel();
-                } else {
-                    console.error('Функция initAdminPanel не найдена!');
+        // Глобальные функции для модальных окон
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        function showAddTaskForm() {
+            document.getElementById('taskModalTitle').textContent = 'Добавить задание';
+            document.getElementById('taskForm').reset();
+            document.getElementById('taskId').value = '';
+            showModal('taskModal');
+        }
+        
+        function editTask(taskId) {
+            // Реализация в admin.js
+            window.editTaskInAdmin(taskId);
+        }
+        
+        function saveTask() {
+            // Реализация в admin.js
+            window.saveTaskInAdmin();
+        }
+        
+        function backupDatabase() {
+            // Реализация в admin.js
+            window.backupDatabaseInAdmin();
+        }
+        
+        function showTab(tabName) {
+            // Реализация в admin.js
+            window.showTabInAdmin(tabName);
+        }
+        
+        function confirmAction() {
+            // Реализация в admin.js
+            window.confirmActionInAdmin();
+        }
+        
+        // Закрытие модальных окон по клику на фон
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.style.display = 'none';
                 }
-            }, 500);
+            });
         });
     </script>
 </body>

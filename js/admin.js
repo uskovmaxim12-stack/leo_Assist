@@ -1,4 +1,63 @@
 // js/admin.js - ИСПРАВЛЕННАЯ ВЕРСИЯ С РАБОЧИМИ КНОПКАМИ
+// Глобальная функция для уведомлений (должна быть доступна везде)
+function showSystemNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `system-notification notification-${type}`;
+    notification.innerHTML = `
+        <i class="fas fa-${getNotificationIcon(type)}"></i>
+        <span>${message}</span>
+        <button class="notification-close" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    
+    notification.style.cssText = `
+        position: fixed;
+        top: 30px;
+        right: 30px;
+        background: ${getNotificationColor(type)};
+        color: white;
+        padding: 18px 24px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        z-index: 10000;
+        animation: slideInRight 0.4s ease;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        min-width: 300px;
+        max-width: 400px;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.style.animation = 'slideOutRight 0.4s ease';
+            setTimeout(() => notification.remove(), 400);
+        }
+    }, 5000);
+}
+
+function getNotificationIcon(type) {
+    const icons = {
+        'success': 'check-circle',
+        'error': 'exclamation-circle',
+        'warning': 'exclamation-triangle',
+        'info': 'info-circle'
+    };
+    return icons[type] || 'info-circle';
+}
+
+function getNotificationColor(type) {
+    const colors = {
+        'success': 'linear-gradient(135deg, #10b981 0%, #34d399 100%)',
+        'error': 'linear-gradient(135deg, #ef4444 0%, #f87171 100%)',
+        'warning': 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)',
+        'info': 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)'
+    };
+    return colors[type] || colors.info;
+}
 document.addEventListener('DOMContentLoaded', function() {
     console.log('👑 Админ-панель загружена');
     
@@ -1532,3 +1591,4 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     document.head.appendChild(style);
 });
+

@@ -1,5 +1,5 @@
-// js/database.js - РАБОЧАЯ БАЗА ДАННЫХ БЕЗ ДЕМО-ДАННЫХ
-class Database {
+// js/database.js - РЕАЛЬНАЯ БАЗА ДАННЫХ
+class LeoDatabase {
     constructor() {
         this.dbName = 'leo_assistant_real_db';
         this.init();
@@ -7,366 +7,432 @@ class Database {
 
     init() {
         if (!localStorage.getItem(this.dbName)) {
+            // ТОЛЬКО реальные начальные данные
             const initialData = {
                 version: "3.0",
-                users: [], // ПОЛНОСТЬЮ ПУСТОЙ СПИСОК
+                lastUpdated: new Date().toISOString(),
+                
+                // === РЕАЛЬНЫЕ ПОЛЬЗОВАТЕЛИ ===
+                users: [],
+                
+                // === РЕАЛЬНЫЕ КЛАССЫ ===
                 classes: {
                     "7B": {
-                        schedule: [],
-                        tasks: [],
-                        students: []
+                        name: "7Б класс",
+                        students: [], // Будет заполняться реальными пользователями
+                        schedule: this.getDefaultSchedule(),
+                        tasks: [] // Будет заполняться реальными заданиями
                     }
                 },
+                
+                // === РЕАЛЬНЫЕ AI ЗНАНИЯ (базовые) ===
                 ai_knowledge: {
-                    greetings: [
-                        "Привет! Я Лео, ваш AI-помощник. Готов помочь с учебой!",
-                        "Здравствуйте! Чем могу быть полезен сегодня?"
-                    ],
-                    subjects: {},
-                    help: "Я могу помочь с заданиями, объяснить тему или показать расписание."
+                    greetings: {
+                        "привет": "Привет! Я Лео, ваш помощник в учебе.",
+                        "здравствуй": "Здравствуйте! Чем могу помочь?",
+                        "добрый день": "Добрый день! Готов помочь с учебой."
+                    },
+                    subjects: {
+                        "математика": "Математика изучает числа, структуры и пространственные отношения.",
+                        "физика": "Физика - наука о природе, изучающая материю, энергию и их взаимодействия.",
+                        "история": "История помогает понять прошлое, чтобы осмыслить настоящее."
+                    }
                 },
-                notifications: [], // РЕАЛЬНЫЕ УВЕДОМЛЕНИЯ
-                achievements: [],
+                
+                // === РЕАЛЬНЫЕ СИСТЕМНЫЕ ДАННЫЕ ===
                 system: {
                     admin_password: "admin123",
                     total_logins: 0,
-                    last_backup: null
-                }
+                    system_name: "Leo Assistant"
+                },
+                
+                // === РЕАЛЬНЫЕ НАСТРОЙКИ ===
+                settings: {
+                    theme: "dark",
+                    accent_color: "#6366f1",
+                    default_class: "7B",
+                    points_per_task: 50,
+                    ai_mode: "advanced"
+                },
+                
+                // === РЕАЛЬНЫЕ ЛОГИ ===
+                logs: []
             };
+            
             this.save(initialData);
+            console.log("✅ Создана новая база данных с реальной структурой");
         }
-        console.log('📊 Реальная база данных инициализирована');
     }
 
-    // ===== РАБОТА С ПОЛЬЗОВАТЕЛЯМИ =====
-    addUser(userData) {
+    getDefaultSchedule() {
+        return [
+            { day: "Понедельник", lessons: [
+                { time: "9:00", subject: "Математика", room: "212" },
+                { time: "10:00", subject: "Русский язык", room: "108" },
+                { time: "11:00", subject: "Физика", room: "305" }
+            ]},
+            { day: "Вторник", lessons: [
+                { time: "9:00", subject: "История", room: "111" },
+                { time: "10:00", subject: "Английский", room: "203" },
+                { time: "11:00", subject: "Информатика", room: "415" }
+            ]}
+        ];
+    }
+
+    // === РЕАЛЬНЫЕ МЕТОДЫ ДЛЯ РАБОТЫ С ДАННЫМИ ===
+
+    // Сохранение данных
+    save(data) {
+        data.lastUpdated = new Date().toISOString();
+        localStorage.setItem(this.dbName, JSON.stringify(data));
+        return true;
+    }
+
+    // Получение всех данных
+    getAll() {
+        const data = localStorage.getItem(this.dbName);
+        return data ? JSON.parse(data) : null;
+    }
+
+    // === РЕАЛЬНЫЕ ПОЛЬЗОВАТЕЛИ ===
+
+    // Регистрация реального пользователя
+    registerUser(userData) {
         const db = this.getAll();
         if (!db) return { success: false, error: "База данных не найдена" };
 
-        // Проверяем существование логина
-        const existingUser = db.users.find(u => u.login.toLowerCase() === userData.login.toLowerCase());
+        // Проверка, что пользователя еще нет
+        const existingUser = db.users.find(u => u.login === userData.login);
         if (existingUser) {
-            return { success: false, error: "Этот логин уже занят" };
+            return { success: false, error: "Пользователь с таким логином уже существует" };
         }
 
+        // Создание реального пользователя
         const newUser = {
             id: Date.now(),
             login: userData.login,
-            password: userData.password,
+            password: userData.password, // В реальном приложении нужно хэшировать!
             name: userData.name,
             avatar: this.generateAvatar(userData.name),
             class: userData.class || "7B",
-            role: "student",
-            points: 0,
+            role: userData.role || "student",
+            points: parseInt(userData.points) || 0,
             level: 1,
-            experience: 0,
-            completed_tasks: [],
+            tasks_completed: [],
             created_at: new Date().toISOString(),
             last_login: null,
-            settings: {
-                theme: "dark",
-                notifications: true,
-                voice_enabled: true
-            },
-            stats: {
-                total_tasks_completed: 0,
-                consecutive_days: 0,
-                last_active: null
-            }
+            is_active: true
         };
 
         db.users.push(newUser);
-        
-        // Добавляем в список класса
-        if (!db.classes["7B"].students) {
-            db.classes["7B"].students = [];
+
+        // Добавляем в класс
+        if (!db.classes[newUser.class]) {
+            db.classes[newUser.class] = {
+                name: `${newUser.class} класс`,
+                students: [],
+                tasks: [],
+                schedule: this.getDefaultSchedule()
+            };
         }
-        
-        db.classes["7B"].students.push({
+
+        db.classes[newUser.class].students.push({
             id: newUser.id,
             name: newUser.name,
-            points: 0,
-            level: 1,
+            points: newUser.points,
             avatar: newUser.avatar
         });
 
         this.save(db);
-        
-        // Создаем приветственное уведомление
-        this.addNotification({
-            user_id: newUser.id,
-            type: "welcome",
-            title: "Добро пожаловать в Leo Assistant!",
-            message: `Рады видеть вас, ${newUser.name}! Начните с настройки профиля.`,
-            icon: "👋",
-            read: false
-        });
+
+        // Логируем действие
+        this.addLog("system", `Зарегистрирован новый пользователь: ${newUser.name}`);
 
         return { success: true, user: newUser };
     }
 
-    authUser(login, password) {
+    // Авторизация реального пользователя
+    loginUser(login, password) {
         const db = this.getAll();
-        if (!db || !db.users) return null;
+        if (!db) return null;
 
         const user = db.users.find(u => 
             u.login === login && u.password === password
         );
 
         if (user) {
-            // Обновляем статистику
+            // Обновляем время последнего входа
             user.last_login = new Date().toISOString();
-            user.stats.last_active = new Date().toISOString();
+            user.is_active = true;
             db.system.total_logins++;
             
             this.save(db);
             
-            // Убираем пароль из ответа
-            const { password: _, ...safeUser } = user;
-            return safeUser;
+            // Логируем вход
+            this.addLog(user.login, "Вход в систему", "login");
+            
+            // Убираем пароль из возвращаемых данных
+            const { password: _, ...userWithoutPassword } = user;
+            return userWithoutPassword;
         }
 
         return null;
     }
 
-    // ===== РЕЙТИНГ =====
-    getClassRating(classId = "7B") {
-        const db = this.getAll();
-        if (!db || !db.classes[classId] || !db.classes[classId].students) {
-            return [];
-        }
-
-        return db.classes[classId].students
-            .sort((a, b) => b.points - a.points)
-            .map((student, index) => ({
-                rank: index + 1,
-                ...student
-            }));
-    }
-
-    updateUserPoints(userId, points) {
+    // Обновление реального пользователя
+    updateUser(userId, userData) {
         const db = this.getAll();
         if (!db) return false;
 
-        const user = db.users.find(u => u.id === userId);
-        if (!user) return false;
+        const userIndex = db.users.findIndex(u => u.id === userId);
+        if (userIndex === -1) return false;
 
-        user.points += points;
-        user.stats.total_tasks_completed += 1;
-        
+        // Обновляем данные пользователя
+        db.users[userIndex] = {
+            ...db.users[userIndex],
+            ...userData,
+            avatar: userData.name ? this.generateAvatar(userData.name) : db.users[userIndex].avatar
+        };
+
         // Обновляем в классе
-        const student = db.classes["7B"]?.students?.find(s => s.id === userId);
-        if (student) {
-            student.points = user.points;
+        const classStudents = db.classes[db.users[userIndex].class]?.students;
+        if (classStudents) {
+            const studentIndex = classStudents.findIndex(s => s.id === userId);
+            if (studentIndex !== -1) {
+                classStudents[studentIndex] = {
+                    ...classStudents[studentIndex],
+                    name: db.users[userIndex].name,
+                    points: db.users[userIndex].points,
+                    avatar: db.users[userIndex].avatar
+                };
+            }
         }
 
         this.save(db);
+        this.addLog("admin", `Обновлен пользователь: ${db.users[userIndex].name}`);
         return true;
     }
 
-    // ===== УВЕДОМЛЕНИЯ =====
-    addNotification(notification) {
+    // Удаление реального пользователя
+    deleteUser(userId) {
         const db = this.getAll();
         if (!db) return false;
 
-        const newNotification = {
-            id: Date.now(),
-            ...notification,
-            created_at: new Date().toISOString(),
-            read: false
-        };
+        const userIndex = db.users.findIndex(u => u.id === userId);
+        if (userIndex === -1) return false;
 
-        if (!db.notifications) {
-            db.notifications = [];
+        const userName = db.users[userIndex].name;
+        const userClass = db.users[userIndex].class;
+
+        // Удаляем пользователя
+        db.users.splice(userIndex, 1);
+
+        // Удаляем из класса
+        if (db.classes[userClass]?.students) {
+            db.classes[userClass].students = 
+                db.classes[userClass].students.filter(s => s.id !== userId);
         }
 
-        db.notifications.push(newNotification);
         this.save(db);
-        return newNotification.id;
+        this.addLog("admin", `Удален пользователь: ${userName}`);
+        return true;
     }
 
-    getUserNotifications(userId) {
-        const db = this.getAll();
-        if (!db || !db.notifications) return [];
+    // === РЕАЛЬНЫЕ ЗАДАНИЯ ===
 
-        return db.notifications
-            .filter(n => n.user_id === userId)
-            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    }
-
-    markNotificationAsRead(notificationId) {
-        const db = this.getAll();
-        if (!db || !db.notifications) return false;
-
-        const notification = db.notifications.find(n => n.id === notificationId);
-        if (notification) {
-            notification.read = true;
-            this.save(db);
-            return true;
-        }
-
-        return false;
-    }
-
-    getUnreadNotificationsCount(userId) {
-        const notifications = this.getUserNotifications(userId);
-        return notifications.filter(n => !n.read).length;
-    }
-
-    // ===== ЗАДАНИЯ =====
+    // Добавление реального задания
     addTask(taskData) {
         const db = this.getAll();
         if (!db) return false;
 
         const newTask = {
             id: Date.now(),
-            ...taskData,
+            subject: taskData.subject,
+            title: taskData.title,
+            description: taskData.description || "",
+            priority: taskData.priority || "medium",
+            due_date: taskData.due_date || null,
             created_at: new Date().toISOString(),
-            completed_by: []
+            completed_by: [],
+            is_active: true
         };
 
-        if (!db.classes["7B"].tasks) {
-            db.classes["7B"].tasks = [];
+        if (!db.classes[taskData.class]) {
+            db.classes[taskData.class] = {
+                name: `${taskData.class} класс`,
+                students: [],
+                tasks: [],
+                schedule: this.getDefaultSchedule()
+            };
         }
 
-        db.classes["7B"].tasks.push(newTask);
+        if (!db.classes[taskData.class].tasks) {
+            db.classes[taskData.class].tasks = [];
+        }
+
+        db.classes[taskData.class].tasks.push(newTask);
+        
         this.save(db);
-
-        // Уведомление для всех пользователей о новом задании
-        if (db.users && db.users.length > 0) {
-            db.users.forEach(user => {
-                if (user.role === 'student') {
-                    this.addNotification({
-                        user_id: user.id,
-                        type: "task",
-                        title: "Новое задание",
-                        message: `Добавлено задание по предмету: ${taskData.subject}`,
-                        icon: "📝",
-                        data: { task_id: newTask.id }
-                    });
-                }
-            });
-        }
-
+        this.addLog("admin", `Добавлено задание: ${taskData.title}`);
         return true;
     }
 
-    getUserTasks(userId) {
-        const db = this.getAll();
-        if (!db || !db.classes["7B"] || !db.classes["7B"].tasks) return [];
-
-        const user = db.users.find(u => u.id === userId);
-        if (!user) return [];
-
-        return db.classes["7B"].tasks.map(task => ({
-            ...task,
-            completed: user.completed_tasks?.includes(task.id) || false
-        }));
-    }
-
+    // Отметка задания как выполненного
     completeTask(userId, taskId) {
-        const db = this.getAll();
-        if (!db) return { success: false };
-
-        const user = db.users.find(u => u.id === userId);
-        const task = db.classes["7B"]?.tasks?.find(t => t.id === taskId);
-
-        if (!user || !task) {
-            return { success: false, error: "Задание или пользователь не найдены" };
-        }
-
-        if (user.completed_tasks?.includes(taskId)) {
-            return { success: false, error: "Задание уже выполнено" };
-        }
-
-        // Отмечаем задание выполненным
-        if (!user.completed_tasks) user.completed_tasks = [];
-        user.completed_tasks.push(taskId);
-
-        // Добавляем в список выполнивших
-        if (!task.completed_by) task.completed_by = [];
-        task.completed_by.push(userId);
-
-        // Начисляем очки
-        const pointsEarned = 50;
-        user.points += pointsEarned;
-        user.stats.total_tasks_completed += 1;
-
-        // Проверяем повышение уровня
-        const experienceNeeded = user.level * 100;
-        user.experience += 100;
-        
-        if (user.experience >= experienceNeeded) {
-            user.level += 1;
-            user.experience = 0;
-            
-            // Уведомление о повышении уровня
-            this.addNotification({
-                user_id: userId,
-                type: "level_up",
-                title: "Поздравляем!",
-                message: `Вы достигли ${user.level} уровня!`,
-                icon: "⭐",
-                data: { new_level: user.level }
-            });
-        }
-
-        // Обновляем в рейтинге класса
-        const student = db.classes["7B"]?.students?.find(s => s.id === userId);
-        if (student) {
-            student.points = user.points;
-            student.level = user.level;
-        }
-
-        this.save(db);
-
-        // Уведомление о выполнении задания
-        this.addNotification({
-            user_id: userId,
-            type: "task_completed",
-            title: "Задание выполнено!",
-            message: `Вы получили ${pointsEarned} очков за задание "${task.title}"`,
-            icon: "✅",
-            data: { task_id: taskId, points: pointsEarned }
-        });
-
-        return { 
-            success: true, 
-            points: pointsEarned, 
-            level_up: user.level > 1,
-            new_level: user.level
-        };
-    }
-
-    // ===== РАСПИСАНИЕ =====
-    updateSchedule(scheduleData) {
         const db = this.getAll();
         if (!db) return false;
 
-        if (!db.classes["7B"]) {
-            db.classes["7B"] = {};
+        // Находим пользователя
+        const user = db.users.find(u => u.id === userId);
+        if (!user) return false;
+
+        // Находим задание во всех классах
+        let task = null;
+        let classKey = null;
+
+        for (const [className, classData] of Object.entries(db.classes)) {
+            const foundTask = classData.tasks?.find(t => t.id === taskId);
+            if (foundTask) {
+                task = foundTask;
+                classKey = className;
+                break;
+            }
         }
 
-        db.classes["7B"].schedule = scheduleData;
+        if (!task) return false;
+
+        // Проверяем, не выполнено ли уже задание
+        if (!task.completed_by.includes(userId)) {
+            // Добавляем пользователя в список выполнивших
+            task.completed_by.push(userId);
+            
+            // Обновляем прогресс пользователя
+            user.tasks_completed.push(taskId);
+            user.points += 50;
+            
+            // Обновляем уровень пользователя
+            const newLevel = Math.floor(user.tasks_completed.length / 5) + 1;
+            if (newLevel > user.level) {
+                user.level = newLevel;
+            }
+            
+            // Обновляем в классе
+            const studentInClass = db.classes[classKey]?.students?.find(s => s.id === userId);
+            if (studentInClass) {
+                studentInClass.points = user.points;
+            }
+
+            this.save(db);
+            this.addLog(user.name, `Выполнил задание: ${task.title}`, "task");
+            return true;
+        }
+
+        return false;
+    }
+
+    // === РЕАЛЬНЫЕ AI ЗНАНИЯ ===
+
+    // Добавление реальных знаний в AI
+    addKnowledge(category, keywords, answer) {
+        const db = this.getAll();
+        if (!db) return false;
+
+        if (!db.ai_knowledge) {
+            db.ai_knowledge = {};
+        }
+
+        if (!db.ai_knowledge[category]) {
+            db.ai_knowledge[category] = {};
+        }
+
+        const keywordList = keywords.split(',').map(k => k.trim().toLowerCase());
+        
+        keywordList.forEach(keyword => {
+            db.ai_knowledge[category][keyword] = answer;
+        });
+
+        this.save(db);
+        this.addLog("admin", `Добавлены знания в категорию: ${category}`, "ai");
+        return true;
+    }
+
+    // Получение ответа от AI
+    getAIResponse(message) {
+        const db = this.getAll();
+        if (!db || !db.ai_knowledge) return "Извините, база знаний пуста.";
+
+        const lowerMessage = message.toLowerCase();
+        
+        // Ищем по всем категориям знаний
+        for (const [category, knowledge] of Object.entries(db.ai_knowledge)) {
+            for (const [keyword, answer] of Object.entries(knowledge)) {
+                if (lowerMessage.includes(keyword)) {
+                    return answer;
+                }
+            }
+        }
+
+        return "Я еще не знаю ответа на этот вопрос. Можете задать его по-другому?";
+    }
+
+    // === РЕАЛЬНЫЕ ЛОГИ ===
+
+    // Добавление лога
+    addLog(user, action, type = "system", level = "info") {
+        const db = this.getAll();
+        if (!db) return false;
+
+        if (!db.logs) db.logs = [];
+
+        const logEntry = {
+            id: Date.now(),
+            timestamp: new Date().toISOString(),
+            user: user,
+            action: action,
+            type: type,
+            level: level,
+            ip: "system" // В реальном приложении получаем IP
+        };
+
+        db.logs.push(logEntry);
+
+        // Ограничиваем количество логов (сохраняем последние 1000)
+        if (db.logs.length > 1000) {
+            db.logs = db.logs.slice(-1000);
+        }
+
         this.save(db);
         return true;
     }
 
-    getSchedule() {
+    // === РЕАЛЬНАЯ СТАТИСТИКА ===
+
+    // Получение реальной статистики системы
+    getSystemStats() {
         const db = this.getAll();
-        return db?.classes?.["7B"]?.schedule || [];
+        if (!db) return null;
+
+        const stats = {
+            total_users: db.users.length,
+            active_users: db.users.filter(u => u.is_active).length,
+            total_tasks: Object.values(db.classes).reduce((total, classData) => 
+                total + (classData.tasks?.length || 0), 0),
+            completed_tasks: db.users.reduce((total, user) => 
+                total + (user.tasks_completed?.length || 0), 0),
+            total_logins: db.system.total_logins || 0,
+            ai_knowledge: Object.values(db.ai_knowledge || {}).reduce((total, category) => 
+                total + Object.keys(category).length, 0),
+            last_updated: db.lastUpdated
+        };
+
+        return stats;
     }
 
-    getTodaySchedule() {
-        const schedule = this.getSchedule();
-        const today = new Date().getDay();
-        const dayIndex = today === 0 ? 6 : today - 1; // Воскресенье = 6
-        
-        return schedule[dayIndex] || { day: "Сегодня", lessons: [] };
-    }
+    // === ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ===
 
-    // ===== ПОМОЩНИКИ =====
     generateAvatar(name) {
+        if (!name) return "??";
+        
         const names = name.split(' ');
         if (names.length >= 2) {
             return (names[0][0] + names[1][0]).toUpperCase();
@@ -374,52 +440,91 @@ class Database {
         return name.substring(0, 2).toUpperCase();
     }
 
-    save(data) {
-        try {
-            localStorage.setItem(this.dbName, JSON.stringify(data));
-            return true;
-        } catch (error) {
-            console.error('Ошибка сохранения:', error);
-            return false;
-        }
-    }
-
-    getAll() {
-        try {
-            const data = localStorage.getItem(this.dbName);
-            return data ? JSON.parse(data) : null;
-        } catch (error) {
-            console.error('Ошибка загрузки:', error);
-            return null;
-        }
-    }
-
-    // ===== АДМИНИСТРАТОР =====
-    getAdminStats() {
+    // Резервное копирование
+    backup() {
         const db = this.getAll();
         if (!db) return null;
 
+        const dataStr = JSON.stringify(db, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+        
         return {
-            total_users: db.users.length,
-            active_users: db.users.filter(u => u.last_login).length,
-            total_tasks: db.classes["7B"]?.tasks?.length || 0,
-            total_notifications: db.notifications?.length || 0,
-            system_logins: db.system.total_logins || 0
+            data: dataStr,
+            dataUri: dataUri,
+            filename: `leo_backup_${new Date().toISOString().split('T')[0]}.json`
         };
     }
 
-    // ===== СБРОС =====
-    clearAllData() {
+    // Восстановление из резервной копии
+    restore(backupData) {
         try {
-            localStorage.removeItem(this.dbName);
-            this.init();
+            const data = JSON.parse(backupData);
+            
+            // Проверяем, что это валидная резервная копия
+            if (!data.version || !data.users || !data.classes) {
+                throw new Error("Некорректный формат резервной копии");
+            }
+
+            localStorage.setItem(this.dbName, JSON.stringify(data));
+            
+            this.addLog("admin", "Восстановлена база данных из резервной копии", "system", "warning");
             return true;
+            
         } catch (error) {
-            console.error('Ошибка очистки:', error);
+            console.error("Ошибка восстановления:", error);
             return false;
         }
     }
+
+    // Очистка всех данных (только для админа!)
+    clearAll() {
+        const db = this.getAll();
+        const adminPassword = db?.system?.admin_password;
+        
+        if (!adminPassword) {
+            localStorage.removeItem(this.dbName);
+            this.init();
+            return true;
+        }
+
+        // Сохраняем только системные настройки и пароль
+        const cleanData = {
+            version: "3.0",
+            users: [],
+            classes: {
+                "7B": {
+                    name: "7Б класс",
+                    students: [],
+                    tasks: [],
+                    schedule: this.getDefaultSchedule()
+                }
+            },
+            ai_knowledge: {
+                greetings: {
+                    "привет": "Привет! Я Лео, ваш помощник в учебе.",
+                    "здравствуй": "Здравствуйте! Чем могу помочь?"
+                }
+            },
+            system: {
+                admin_password: adminPassword,
+                total_logins: 0,
+                system_name: "Leo Assistant"
+            },
+            settings: db?.settings || {
+                theme: "dark",
+                accent_color: "#6366f1",
+                default_class: "7B",
+                points_per_task: 50
+            },
+            logs: []
+        };
+
+        localStorage.setItem(this.dbName, JSON.stringify(cleanData));
+        
+        this.addLog("admin", "Очищена вся база данных", "system", "danger");
+        return true;
+    }
 }
 
-// Глобальный экземпляр базы данных
-const leoDB = new Database();
+// Создаем глобальный экземпляр
+const leoDB = new LeoDatabase();

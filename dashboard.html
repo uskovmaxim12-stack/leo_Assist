@@ -777,5 +777,140 @@
             }
         });
     </script>
+    <!-- После подключения dashboard.js добавьте: -->
+<script>
+// Проверка авторизации
+document.addEventListener('DOMContentLoaded', function() {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    
+    if (!currentUser) {
+        window.location.href = 'index.html';
+        return;
+    }
+    
+    // Загружаем реальные данные пользователя
+    loadRealDashboardData(currentUser);
+});
+
+function loadRealDashboardData(user) {
+    // Обновляем информацию в интерфейсе
+    document.getElementById('userName').textContent = user.name;
+    document.getElementById('userRole').textContent = 
+        user.role === 'admin' ? 'Администратор' : 'Ученик 7Б класса';
+    document.getElementById('userPoints').textContent = user.points;
+    
+    // Загружаем реальные задания
+    loadRealTasks();
+    
+    // Загружаем реальное расписание
+    loadRealSchedule();
+    
+    // Загружаем реальный рейтинг (только настоящие пользователи)
+    loadRealRating();
+}
+
+function loadRealTasks() {
+    const tasks = window.leoDB.getAllTasks();
+    const container = document.getElementById('tasksList');
+    
+    if (!tasks.length) {
+        container.innerHTML = '<p class="empty">Нет активных заданий</p>';
+        return;
+    }
+    
+    container.innerHTML = tasks.map(task => `
+        <div class="task-item ${task.priority}">
+            <div class="task-icon">
+                <i class="fas fa-book"></i>
+            </div>
+            <div class="task-content">
+                <h4>${task.title}</h4>
+                <div class="task-meta">
+                    <span class="subject">${task.subject}</span>
+                    <span class="deadline">до ${task.due_date}</span>
+                </div>
+            </div>
+            <button class="btn-complete" onclick="completeTask(${task.id})">
+                <i class="fas fa-check"></i>
+            </button>
+        </div>
+    `).join('');
+}
+
+function completeTask(taskId) {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const success = window.leoDB.completeTask(currentUser.id, taskId);
+    
+    if (success) {
+        showToast('Задание выполнено! +50 очков', 'success');
+        loadRealDashboardData(currentUser);
+    }
+}
+
+function loadRealRating() {
+    const users = window.leoDB.getAllUsers()
+        .filter(u => u.role === 'student')
+        .sort((a, b) => b.points - a.points);
+    
+    const container = document.getElementById('ratingList');
+    
+    container.innerHTML = users.map((user, index) => `
+        <div class="rating-item ${index < 3 ? 'top' : ''}">
+            <div class="place">${index + 1}</div>
+            <div class="user-avatar">${user.avatar}</div>
+            <div class="user-info">
+                <h4>${user.name}</h4>
+                <p>${user.class}</p>
+            </div>
+            <div class="user-points">
+                <i class="fas fa-star"></i>
+                ${user.points} очков
+            </div>
+        </div>
+    `).join('');
+}
+
+function askAI() {
+    const question = document.getElementById('aiQuestion').value;
+    
+    if (!question.trim()) {
+        showToast('Введите вопрос', 'error');
+        return;
+    }
+    
+    const answer = window.leoDB.askAI(question);
+    
+    // Добавляем ответ в чат
+    const chat = document.getElementById('aiChat');
+    chat.innerHTML += `
+        <div class="message user">
+            <div class="avatar">ВЫ</div>
+            <div class="content">${question}</div>
+        </div>
+        <div class="message ai">
+            <div class="avatar">ЛЕО</div>
+            <div class="content">${answer}</div>
+        </div>
+    `;
+    
+    // Очищаем поле ввода
+    document.getElementById('aiQuestion').value = '';
+    
+    // Прокручиваем вниз
+    chat.scrollTop = chat.scrollHeight;
+}
+
+function showToast(message, type = 'info') {
+    // Реализация тостов
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => toast.remove(), 3000);
+}
+</script>
 </body>
 </html>
+

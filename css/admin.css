@@ -1,0 +1,2034 @@
+/* admin.css - ПОЛНЫЕ СТИЛИ АДМИН-ПАНЕЛИ */
+
+/* Основные стили админ-панели */
+.admin-dashboard {
+    display: flex;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #f1f5f9;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow-x: hidden;
+}
+
+/* ===== САЙДБАР АДМИНКИ ===== */
+.admin-sidebar {
+    width: 280px;
+    background: rgba(30, 41, 59, 0.95);
+    backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(59, 130, 246, 0.2);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+}
+
+.admin-sidebar.collapsed {
+    transform: translateX(-100%);
+    margin-left: -280px;
+}
+
+.admin-header {
+    padding: 25px 20px;
+    border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+    text-align: center;
+}
+
+.admin-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.admin-logo-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+}
+
+.admin-logo h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 800;
+    background: linear-gradient(90deg, #ef4444, #f87171);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.admin-subtitle {
+    font-size: 13px;
+    color: #94a3b8;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+/* Навигация админки */
+.admin-nav {
+    flex: 1;
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.admin-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 16px 24px;
+    color: #94a3b8;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin: 0 10px;
+    border-radius: 12px;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    text-align: left;
+    font-size: 15px;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-nav-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, #ef4444 0%, #f87171 100%);
+    transform: translateX(-100%);
+    transition: transform 0.3s;
+}
+
+.admin-nav-item:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #f87171;
+    transform: translateX(5px);
+}
+
+.admin-nav-item:hover::before {
+    transform: translateX(0);
+}
+
+.admin-nav-item.active {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    font-weight: 600;
+}
+
+.admin-nav-item.active::before {
+    transform: translateX(0);
+}
+
+.admin-nav-item i {
+    width: 24px;
+    text-align: center;
+    font-size: 18px;
+    transition: transform 0.3s;
+}
+
+.admin-nav-item:hover i {
+    transform: scale(1.2);
+}
+
+.admin-nav-badge {
+    margin-left: auto;
+    background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    min-width: 24px;
+    text-align: center;
+    font-weight: 700;
+}
+
+/* Статистика в сайдбаре */
+.admin-stats-sidebar {
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.6);
+    border-radius: 16px;
+    margin: 15px;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.admin-stat-sidebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(239, 68, 68, 0.1);
+}
+
+.admin-stat-sidebar:last-child {
+    border-bottom: none;
+}
+
+.admin-stat-label {
+    font-size: 13px;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-stat-label i {
+    color: #ef4444;
+    font-size: 14px;
+}
+
+.admin-stat-value {
+    font-size: 18px;
+    font-weight: 800;
+    color: white;
+}
+
+/* Кнопка выхода */
+.admin-logout-btn {
+    margin: 20px;
+    padding: 16px;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.admin-logout-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
+}
+
+/* ===== ОСНОВНОЙ КОНТЕНТ АДМИНКИ ===== */
+.admin-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Шапка админки */
+.admin-topbar {
+    padding: 0 30px;
+    height: 80px;
+    background: rgba(30, 41, 59, 0.9);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 500;
+}
+
+.admin-topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.admin-menu-toggle {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 20px;
+    transition: all 0.3s;
+}
+
+.admin-menu-toggle:hover {
+    background: rgba(239, 68, 68, 0.2);
+    transform: rotate(180deg);
+}
+
+.admin-page-title h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+    line-height: 1.2;
+}
+
+.admin-page-title p {
+    margin: 5px 0 0;
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+.admin-topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.admin-current-time {
+    font-size: 14px;
+    color: #94a3b8;
+    font-weight: 500;
+    padding: 10px 16px;
+    background: rgba(30, 41, 59, 0.7);
+    border-radius: 12px;
+    border: 1px solid rgba(59, 130, 246, 0.1);
+}
+
+.admin-refresh-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    color: #3b82f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.3s;
+}
+
+.admin-refresh-btn:hover {
+    background: rgba(59, 130, 246, 0.2);
+    transform: rotate(180deg);
+}
+
+/* Контент админки */
+.admin-content {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.7));
+}
+
+.admin-tab-content {
+    display: none;
+    animation: fadeIn 0.4s ease;
+}
+
+.admin-tab-content.active {
+    display: block;
+}
+
+/* ===== ПАНЕЛЬ СТАТИСТИКИ ===== */
+.admin-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+.admin-stat-card {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.6));
+    border-radius: 20px;
+    padding: 30px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+}
+
+.admin-stat-card:hover {
+    transform: translateY(-8px);
+    border-color: #3b82f6;
+    box-shadow: 0 15px 40px rgba(59, 130, 246, 0.2);
+}
+
+.admin-stat-card.danger::before {
+    background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
+.admin-stat-card.warning::before {
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.admin-stat-card.success::before {
+    background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.admin-stat-icon {
+    font-size: 32px;
+    margin-bottom: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.admin-stat-card.danger .admin-stat-icon {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.admin-stat-card.warning .admin-stat-icon {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.admin-stat-card.success .admin-stat-icon {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.admin-stat-value {
+    font-size: 42px;
+    font-weight: 800;
+    color: white;
+    line-height: 1;
+    margin-bottom: 10px;
+}
+
+.admin-stat-label {
+    font-size: 14px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+.admin-stat-trend {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(59, 130, 246, 0.1);
+}
+
+.admin-stat-trend.up {
+    color: #10b981;
+}
+
+.admin-stat-trend.down {
+    color: #ef4444;
+}
+
+/* График активности */
+.admin-chart-container {
+    background: rgba(30, 41, 59, 0.8);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 40px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.admin-chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.admin-chart-header h3 {
+    margin: 0;
+    font-size: 20px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.admin-chart-header h3 i {
+    color: #3b82f6;
+}
+
+.admin-chart-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.admin-chart-period {
+    padding: 10px 16px;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 12px;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.admin-chart-canvas {
+    height: 300px;
+    position: relative;
+}
+
+/* Виджеты на панели */
+.admin-widgets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 25px;
+}
+
+.admin-widget {
+    background: rgba(30, 41, 59, 0.8);
+    border-radius: 20px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    overflow: hidden;
+}
+
+.admin-widget-header {
+    padding: 25px;
+    border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-widget-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.admin-widget-header h3 i {
+    color: #3b82f6;
+}
+
+.admin-widget-body {
+    padding: 25px;
+}
+
+/* Виджет последних входов */
+.recent-logins-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.recent-login-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 18px;
+    background: rgba(15, 23, 42, 0.6);
+    border-radius: 14px;
+    border: 1px solid rgba(59, 130, 246, 0.1);
+    transition: all 0.3s;
+}
+
+.recent-login-item:hover {
+    background: rgba(59, 130, 246, 0.1);
+    transform: translateX(5px);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.login-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.login-info {
+    flex: 1;
+}
+
+.login-user {
+    font-weight: 600;
+    color: white;
+    margin-bottom: 5px;
+}
+
+.login-time {
+    font-size: 13px;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.login-time i {
+    font-size: 12px;
+    color: #3b82f6;
+}
+
+.login-status {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 10px;
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+/* Виджет системных предупреждений */
+.system-warnings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.warning-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 18px;
+    background: rgba(15, 23, 42, 0.6);
+    border-radius: 14px;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    transition: all 0.3s;
+}
+
+.warning-item:hover {
+    background: rgba(245, 158, 11, 0.1);
+    transform: translateX(5px);
+}
+
+.warning-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(245, 158, 11, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #f59e0b;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.warning-info {
+    flex: 1;
+}
+
+.warning-title {
+    font-weight: 600;
+    color: white;
+    margin-bottom: 5px;
+}
+
+.warning-details {
+    font-size: 13px;
+    color: #94a3b8;
+    line-height: 1.4;
+}
+
+.warning-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* ===== УПРАВЛЕНИЕ ПОЛЬЗОВАТЕЛЯМИ ===== */
+.users-header {
+    padding: 25px 30px;
+    margin-bottom: 30px;
+    border-radius: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.users-header h2 {
+    margin: 0;
+    font-size: 28px;
+    color: white;
+}
+
+.users-header h2 i {
+    color: #3b82f6;
+    margin-right: 10px;
+}
+
+.users-header > div:first-child p {
+    margin: 8px 0 0;
+    color: #94a3b8;
+    font-size: 15px;
+}
+
+.users-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.btn-admin-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    border: none;
+    border-radius: 14px;
+    color: white;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-admin-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(239, 68, 68, 0.4);
+}
+
+.btn-admin-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 24px;
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 14px;
+    color: #3b82f6;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-admin-secondary:hover {
+    background: rgba(59, 130, 246, 0.1);
+    transform: translateY(-3px);
+}
+
+/* Таблица пользователей */
+.users-table-container {
+    background: rgba(30, 41, 59, 0.8);
+    border-radius: 20px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    overflow: hidden;
+}
+
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.users-table thead {
+    background: rgba(15, 23, 42, 0.9);
+}
+
+.users-table th {
+    padding: 20px 25px;
+    text-align: left;
+    font-weight: 700;
+    color: #94a3b8;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid rgba(59, 130, 246, 0.1);
+}
+
+.users-table tbody tr {
+    border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+    transition: all 0.3s;
+}
+
+.users-table tbody tr:hover {
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.users-table td {
+    padding: 20px 25px;
+    vertical-align: middle;
+}
+
+.user-cell {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-avatar-table {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.user-info-table h4 {
+    margin: 0 0 5px;
+    font-size: 15px;
+    font-weight: 600;
+    color: white;
+}
+
+.user-info-table p {
+    margin: 0;
+    font-size: 13px;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.user-info-table p i {
+    font-size: 12px;
+    color: #3b82f6;
+}
+
+.user-role-badge {
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.role-admin {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.role-student {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.role-teacher {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.user-points-cell {
+    font-weight: 700;
+    color: white;
+    font-size: 16px;
+}
+
+.user-level-cell {
+    font-weight: 600;
+    color: #f59e0b;
+}
+
+.user-date-cell {
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+.user-actions-cell {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-action {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 14px;
+}
+
+.btn-edit {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.btn-edit:hover {
+    background: rgba(59, 130, 246, 0.2);
+    transform: translateY(-2px);
+}
+
+.btn-reset {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.btn-reset:hover {
+    background: rgba(245, 158, 11, 0.2);
+    transform: translateY(-2px);
+}
+
+.btn-delete {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.btn-delete:hover {
+    background: rgba(239, 68, 68, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Форма добавления/редактирования пользователя */
+.admin-form-container {
+    background: rgba(30, 41, 59, 0.8);
+    border-radius: 20px;
+    padding: 40px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    margin-top: 30px;
+    display: none;
+}
+
+.admin-form-container.show {
+    display: block;
+    animation: slideInUp 0.4s ease;
+}
+
+.admin-form-container h3 {
+    margin: 0 0 30px;
+    font-size: 24px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.admin-form-container h3 i {
+    color: #3b82f6;
+}
+
+.admin-form-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+    margin-bottom: 25px;
+}
+
+.admin-form-group {
+    margin-bottom: 20px;
+}
+
+.admin-form-group label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: white;
+    font-size: 14px;
+}
+
+.admin-form-group label span {
+    color: #ef4444;
+    margin-left: 2px;
+}
+
+.admin-form-control {
+    width: 100%;
+    padding: 16px 20px;
+    background: rgba(15, 23, 42, 0.7);
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    border-radius: 12px;
+    color: white;
+    font-size: 15px;
+    transition: all 0.3s;
+}
+
+.admin-form-control:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: rgba(15, 23, 42, 0.9);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.admin-form-control::placeholder {
+    color: #64748b;
+}
+
+.admin-form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 40px;
+    padding-top: 25px;
+    border-top: 1px solid rgba(59, 130, 246, 0.1);
+}
+
+/* ===== AI ОБУЧЕНИЕ ===== */
+.ai-training-section {
+    background: rgba(30, 41, 59, 0.8);
+    border-radius: 20px;
+    padding: 40px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    margin-bottom: 30px;
+}
+
+.ai-training-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.ai-training-header h3 {
+    margin: 0;
+    font-size: 24px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ai-training-header h3 i {
+    color: #8b5cf6;
+}
+
+.training-status {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 25px;
+    background: rgba(15, 23, 42, 0.6);
+    border-radius: 16px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    margin-bottom: 40px;
+}
+
+.status-indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #10b981;
+    flex-shrink: 0;
+}
+
+.status-indicator.training {
+    background: #f59e0b;
+    animation: pulse 1.5s infinite;
+}
+
+.status-text {
+    flex: 1;
+}
+
+.status-text strong {
+    display: block;
+    font-size: 16px;
+    color: white;
+    margin-bottom: 5px;
+}
+
+.status-text div {
+    font-size: 14px;
+    color: #94a3b8;
+}
+
+.status-progress {
+    font-size: 32px;
+    font-weight: 800;
+    color: #3b82f6;
+    min-width: 80px;
+    text-align: right;
+}
+
+.knowledge-items {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.knowledge-item {
+    background: rgba(15, 23, 42, 0.6);
+    padding: 25px;
+    border-radius: 16px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    transition: all 0.3s;
+}
+
+.knowledge-item:hover {
+    border-color: #3b82f6;
+    transform: translateY(-5px);
+}
+
+.knowledge-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.knowledge-category {
+    font-weight: 700;
+    color: #3b82f6;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: rgba(59, 130, 246, 0.1);
+    padding: 6px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.knowledge-text {
+    line-height: 1.6;
+    color: #e2e8f0;
+    font-size: 15px;
+}
+
+/* Форма добавления знаний */
+.ai-knowledge-form {
+    background: rgba(30, 41, 59, 0.8);
+    border-radius: 20px;
+    padding: 40px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.ai-knowledge-form h3 {
+    margin: 0 0 30px;
+    font-size: 24px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ai-knowledge-form h3 i {
+    color: #8b5cf6;
+}
+
+/* ===== СИСТЕМНЫЕ НАСТРОЙКИ ===== */
+.settings-container {
+    background: rgba(30, 41, 59, 0.8);
+    border-radius: 20px;
+    padding: 40px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.settings-container h3 {
+    margin: 0 0 30px;
+    font-size: 24px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.settings-container h3 i {
+    color: #3b82f6;
+}
+
+.settings-group {
+    margin-bottom: 30px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+}
+
+.settings-group:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.settings-group h4 {
+    margin: 0 0 20px;
+    font-size: 18px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.settings-group h4 i {
+    color: #3b82f6;
+    font-size: 16px;
+}
+
+/* База данных */
+.db-management {
+    background: rgba(30, 41, 59, 0.8);
+    border-radius: 20px;
+    padding: 40px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    margin-top: 30px;
+}
+
+.db-management h3 {
+    margin: 0 0 30px;
+    font-size: 24px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.db-management h3 i {
+    color: #3b82f6;
+}
+
+.db-actions {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+}
+
+.db-info {
+    padding: 25px;
+    background: rgba(15, 23, 42, 0.6);
+    border-radius: 16px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.db-info p {
+    margin: 10px 0;
+    color: #e2e8f0;
+    font-size: 14px;
+}
+
+.db-info p strong {
+    color: white;
+    font-weight: 600;
+}
+
+/* ===== ЛОГИ СИСТЕМЫ ===== */
+.logs-container {
+    background: rgba(30, 41, 59, 0.8);
+    border-radius: 20px;
+    padding: 40px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.logs-container h3 {
+    margin: 0 0 30px;
+    font-size: 24px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logs-container h3 i {
+    color: #3b82f6;
+}
+
+.logs-list {
+    max-height: 600px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.log-item {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+    transition: all 0.3s;
+}
+
+.log-item:hover {
+    background: rgba(59, 130, 246, 0.05);
+    border-radius: 12px;
+}
+
+.log-item:last-child {
+    border-bottom: none;
+}
+
+.log-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(59, 130, 246, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #3b82f6;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.log-content {
+    flex: 1;
+}
+
+.log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.log-user {
+    font-weight: 600;
+    color: white;
+    font-size: 15px;
+}
+
+.log-time {
+    font-size: 13px;
+    color: #94a3b8;
+}
+
+.log-details {
+    color: #e2e8f0;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.log-type {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.log-type.login {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.log-type.error {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.log-type.system {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+/* ===== МОДАЛЬНЫЕ ОКНА ===== */
+.admin-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+}
+
+.admin-modal.show {
+    display: flex;
+}
+
+.admin-modal-content {
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 20px;
+    background: rgba(30, 41, 59, 0.95);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    animation: slideInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-modal-header {
+    padding: 25px 30px;
+    border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-modal-header h3 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: white;
+}
+
+.admin-modal-close {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(59, 130, 246, 0.1);
+    color: white;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.admin-modal-close:hover {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.admin-modal-body {
+    padding: 30px;
+}
+
+.admin-modal-footer {
+    padding: 25px 30px;
+    border-top: 1px solid rgba(59, 130, 246, 0.1);
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+}
+
+/* ===== УВЕДОМЛЕНИЯ ===== */
+.admin-notification {
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    color: white;
+    padding: 20px 25px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    z-index: 3000;
+    animation: slideInRight 0.4s ease;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    min-width: 300px;
+    max-width: 400px;
+}
+
+.admin-notification.success {
+    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+}
+
+.admin-notification.error {
+    background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+}
+
+.admin-notification.warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+}
+
+.admin-notification i {
+    font-size: 22px;
+}
+
+.admin-notification span {
+    flex: 1;
+    font-weight: 500;
+}
+
+.admin-notification-close {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.admin-notification-close:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* ===== ПУСТЫЕ СОСТОЯНИЯ ===== */
+.empty-state {
+    text-align: center;
+    padding: 60px 30px;
+    color: #94a3b8;
+}
+
+.empty-state i {
+    font-size: 64px;
+    margin-bottom: 25px;
+    opacity: 0.5;
+}
+
+.empty-state h4 {
+    margin: 0 0 15px;
+    font-size: 22px;
+    color: white;
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.6;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+/* ===== АНИМАЦИИ ===== */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ===== АДАПТИВНОСТЬ ===== */
+@media (max-width: 1200px) {
+    .admin-widgets-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .admin-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 1024px) {
+    .admin-sidebar {
+        position: fixed;
+        left: -280px;
+        top: 0;
+        bottom: 0;
+        z-index: 1000;
+    }
+    
+    .admin-sidebar.mobile-open {
+        left: 0;
+    }
+    
+    .admin-menu-toggle {
+        display: flex;
+    }
+    
+    .admin-topbar {
+        padding: 0 20px;
+        height: 70px;
+    }
+    
+    .admin-page-title h1 {
+        font-size: 20px;
+    }
+    
+    .admin-page-title p {
+        font-size: 13px;
+    }
+    
+    .admin-content {
+        padding: 20px;
+    }
+    
+    .admin-form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .users-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+        padding: 20px;
+    }
+    
+    .users-actions {
+        width: 100%;
+    }
+    
+    .users-actions button {
+        flex: 1;
+        text-align: center;
+    }
+    
+    .users-table-container {
+        overflow-x: auto;
+    }
+    
+    .users-table {
+        min-width: 800px;
+    }
+    
+    .admin-form-container,
+    .ai-training-section,
+    .settings-container,
+    .db-management,
+    .logs-container {
+        padding: 30px 20px;
+    }
+    
+    .admin-modal-content {
+        margin: 0 15px;
+    }
+    
+    .admin-notification {
+        left: 20px;
+        right: 20px;
+        max-width: none;
+        top: 20px;
+    }
+    
+    .training-status {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
+    
+    .status-progress {
+        text-align: center;
+    }
+    
+    .db-actions {
+        flex-direction: column;
+    }
+    
+    .db-actions button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .admin-topbar {
+        padding: 0 15px;
+        height: 60px;
+    }
+    
+    .admin-page-title h1 {
+        font-size: 18px;
+    }
+    
+    .admin-content {
+        padding: 15px;
+    }
+    
+    .admin-stat-card {
+        padding: 25px;
+    }
+    
+    .admin-stat-value {
+        font-size: 36px;
+    }
+    
+    .admin-form-actions {
+        flex-direction: column;
+    }
+    
+    .admin-form-actions button {
+        width: 100%;
+    }
+    
+    .log-item {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .log-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .admin-notification {
+        left: 15px;
+        right: 15px;
+        padding: 15px 20px;
+    }
+}
+
+/* ===== ТЕМНЫЕ И СВЕТЛЫЕ ТЕМЫ ===== */
+@media (prefers-color-scheme: light) {
+    .admin-dashboard {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        color: #1e293b;
+    }
+    
+    .admin-sidebar {
+        background: rgba(255, 255, 255, 0.95);
+        border-right-color: rgba(59, 130, 246, 0.1);
+    }
+    
+    .admin-subtitle {
+        color: #64748b;
+    }
+    
+    .admin-nav-item {
+        color: #64748b;
+    }
+    
+    .admin-nav-item:hover {
+        background: rgba(239, 68, 68, 0.05);
+        color: #dc2626;
+    }
+    
+    .admin-nav-item.active {
+        background: rgba(239, 68, 68, 0.1);
+        color: #dc2626;
+    }
+    
+    .admin-stat-sidebar {
+        border-bottom-color: rgba(239, 68, 68, 0.1);
+    }
+    
+    .admin-stat-label {
+        color: #64748b;
+    }
+    
+    .admin-stat-value {
+        color: #1e293b;
+    }
+    
+    .admin-topbar {
+        background: rgba(255, 255, 255, 0.9);
+        border-bottom-color: rgba(59, 130, 246, 0.1);
+    }
+    
+    .admin-page-title h1 {
+        color: #1e293b;
+    }
+    
+    .admin-page-title p {
+        color: #64748b;
+    }
+    
+    .admin-current-time {
+        background: rgba(248, 250, 252, 0.7);
+        border-color: rgba(59, 130, 246, 0.1);
+        color: #64748b;
+    }
+    
+    .admin-stat-card {
+        background: rgba(255, 255, 255, 0.8);
+        border-color: rgba(59, 130, 246, 0.1);
+    }
+    
+    .admin-stat-card:hover {
+        border-color: #3b82f6;
+        box-shadow: 0 15px 40px rgba(59, 130, 246, 0.1);
+    }
+    
+    .admin-stat-value {
+        color: #1e293b;
+    }
+    
+    .admin-stat-label {
+        color: #64748b;
+    }
+    
+    .admin-chart-container {
+        background: rgba(255, 255, 255, 0.8);
+        border-color: rgba(59, 130, 246, 0.1);
+    }
+    
+    .admin-chart-header h3 {
+        color: #1e293b;
+    }
+    
+    .admin-chart-period {
+        background: rgba(248, 250, 252, 0.7);
+        border-color: rgba(59, 130, 246, 0.2);
+        color: #1e293b;
+    }
+    
+    .admin-widget {
+        background: rgba(255, 255, 255, 0.8);
+        border-color: rgba(59, 130, 246, 0.1);
+    }
+    
+    .admin-widget-header h3 {
+        color: #1e293b;
+    }
+    
+    .recent-login-item {
+        background: rgba(248, 250, 252, 0.7);
+        border-color: rgba(59, 130, 246, 0.1);
+    }
+    
+    .recent-login-item:hover {
+        background: rgba(59, 130, 246, 0.05);
+        border-color: rgba(59, 130, 246, 0.2);
+    }
+    
+    .login-user {
+        color: #1e293b;
+    }
+    
+    .login-time {
+        color: #64748b;
+    }
+    
+    .warning-item {
+        background: rgba(248, 250, 252, 0.7);
+        border-color: rgba(245, 158, 11, 0.2);
+    }
+    
+    .warning-item:hover {
+        background: rgba(245, 158, 11, 0.05);
+    }
+    
+    .warning-title {
+        color: #1e293b;
+    }
+    
+    .warning-details {
+        color: #64748b;
+    }
+    
+    .users-header {
+        background: rgba(255, 255, 255, 0.8);
+        border-color: rgba(59, 130, 246, 0.1);
+    }
+    
+    .users-header h2 {
+        color: #1e293b;
+    }
+    
+    .users-header > div:first-child p {
+        color: #64748b;
+    }
+    
+    .users-table-container {
+        background: rgba(255, 255, 255, 0.8);
+        border-color: rgba(59, 130, 246, 0.1);
+    }
+    
+    .users-table th {
+        color: #64748b;
+        background: rgba(248, 250, 252, 0.9);
+    }
+    
+    .users-table tbody tr:hover {
+        background: rgba(59, 130, 246, 0.03);
+    }
+    
+    .user-info-table h4 {
+        color: #1e293b;
+    }
+    
+    .user-info-table p {
+        color: #64748b;
+    }
+    
+    .user-points-cell {
+        color: #1e293b;
+    }
+    
+    .user-date-cell {
+        color: #64748b;
+    }
+    
+    .admin-form-container {
+        background: rgba(255, 255, 255, 0.8);
+        border-color: rgba(59, 130, 246, 0.1);
+    }
+    
+    .admin-form-container h3 {
+        color: #1e293b;
+    }
+    
+    .admin-form-group label {
+        color: #1e293b;
+    }
+    
+    .admin-form-control {
+        background: rgba(248, 250, 252, 0.7);
+        border-color: rgba(59, 130, 246, 0.2);
+        color: #1e293b;
+    }
+    
+    .admin-form-control:focus {
+        background: rgba(248, 250, 252, 0.9);
+    }
+    
+    .ai-training-section {
+        background: rgba(255, 255, 255, 0.8);
+        border-color: rgba(59, 130, 246, 0.1);
+    }
+    
+    .ai-training-header h3 {
+        color: #1e293b;
+    }
+    
+    .training-status {
+        background: rgba(248, 250, 252, 0.7);
+        border-color: rgba(59, 130, 246, 0.2);
+    }
+    
+    .status-text strong {
+        color: #1e293b;
+    }
+    
+    .status-text div {
+        color: #64748b;
+    }
+    
+    .knowledge-item {
+        background: rgba(248, 250, 252, 0.7);
+        border-color: rgba(59, 130, 246, 0.2);
+    }
+    
+    .knowledge-item:hover {
+        border-color: #3b82f6;
+    }
+    
+    .knowledge-text {
+        color: #334155;
+    }
+    
+    .ai-knowledge-form {
+        background: rgba(255, 255, 255, 0.8);
+        border-color: rgba(59, 130, 246, 0.1);
+    }
+    
+    .ai-knowledge-form h3 {
+        color: #1e293b;
+    }
+    
+    .settings-container {
+        background: rgba(255, 255, 255, 0.8);
+        border-color: rgba(59, 130, 246, 0.1);
+    }
+    
+    .settings-container h3 {
+        color: #1e293b;
+    }
+    
+    .settings-group h4 {
+        color: #1e293b;
+    }
+    
+    .db-management {
+        background: rgba(255, 255, 255, 0.8);
+        border-color: rgba(59, 130, 246, 0.1);
+    }
+    
+    .db-management h3 {
+        color: #1e293b;
+    }
+    
+    .db-info {
+        background: rgba(248, 250, 252, 0.7);
+        border-color: rgba(59, 130, 246, 0.2);
+    }
+    
+    .db-info p {
+        color: #334155;
+    }
+    
+    .db-info p strong {
+        color: #1e293b;
+    }
+    
+    .logs-container {
+        background: rgba(255, 255, 255, 0.8);
+        border-color: rgba(59, 130, 246, 0.1);
+    }
+    
+    .logs-container h3 {
+        color: #1e293b;
+    }
+    
+    .log-item:hover {
+        background: rgba(59, 130, 246, 0.03);
+    }
+    
+    .log-user {
+        color: #1e293b;
+    }
+    
+    .log-details {
+        color: #334155;
+    }
+    
+    .admin-modal-content {
+        background: rgba(255, 255, 255, 0.95);
+        border-color: rgba(59, 130, 246, 0.2);
+    }
+    
+    .admin-modal-header h3 {
+        color: #1e293b;
+    }
+    
+    .admin-modal-close {
+        background: rgba(248, 250, 252, 0.7);
+        border-color: rgba(59, 130, 246, 0.1);
+        color: #64748b;
+    }
+    
+    .admin-modal-close:hover {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+    
+    .empty-state h4 {
+        color: #1e293b;
+    }
+    
+    .empty-state {
+        color: #64748b;
+    }
+}
+
+/* ===== КОНЕЦ ФАЙЛА ===== */

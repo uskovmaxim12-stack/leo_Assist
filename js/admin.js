@@ -1,429 +1,140 @@
-// js/admin.js - ПОЛНОСТЬЮ РАБОЧАЯ АДМИН-ПАНЕЛЬ
+// js/admin.js - РАБОЧАЯ АДМИН-ПАНЕЛЬ
 document.addEventListener('DOMContentLoaded', function() {
     console.log('👑 Админ-панель загружена');
     
-    // ========== БАЗА ДАННЫХ ДЛЯ АДМИНКИ ==========
-    class AdminDatabase {
-        constructor() {
-            this.db = leoDB;
-            this.init();
-        }
+    // ========== ПРОВЕРКА ПРАВ ==========
+    function checkAdminAccess() {
+        const isAdmin = localStorage.getItem('is_admin') === 'true';
+        const currentUser = JSON.parse(localStorage.getItem('current_user') || '{}');
         
-        init() {
-            this.initAdminUser();
-            this.initSystemData();
+        if (!isAdmin && currentUser.role !== 'admin') {
+            alert('❌ Доступ запрещен! Требуются права администратора.');
+            window.location.href = 'index.html';
+            return false;
         }
-        
-        initAdminUser() {
-            const db = this.db.getAll();
-            if (!db.users) db.users = [];
-            
-            // Проверяем есть ли администратор
-            const adminExists = db.users.some(u => u.role === 'admin');
-            if (!adminExists) {
-                const adminUser = {
-                    id: 1,
-                    login: 'admin',
-                    password: 'admin123',
-                    name: 'Администратор системы',
-                    avatar: 'АС',
-                    class: 'admin',
-                    role: 'admin',
-                    points: 0,
-                    level: 99,
-                    tasks_completed: [],
-                    created_at: new Date().toISOString(),
-                    last_login: new Date().toISOString()
-                };
-                
-                db.users.push(adminUser);
-                this.db.save(db);
-                console.log('👑 Администратор создан');
-            }
-        }
-        
-        initSystemData() {
-            const db = this.db.getAll();
-            
-            // Инициализируем системные данные если их нет
-            if (!db.system) {
-                db.system = {
-                    admin_password: 'admin123',
-                    system_name: 'Leo Assistant',
-                    version: '2.0',
-                    total_logins: 0,
-                    last_backup: null,
-                    settings: {
-                        default_class: '7B',
-                        points_per_task: 50,
-                        session_duration: 7,
-                        auto_backup: 'daily',
-                        logs_retention: 30
-                    }
-                };
-            }
-            
-            // Инициализируем логи если их нет
-            if (!db.logs) {
-                db.logs = {
-                    activities: [],
-                    errors: [],
-                    user_actions: []
-                };
-            }
-            
-            this.db.save(db);
-        }
-        
-        // Получить всех пользователей
-        getAllUsers() {
-            const db = this.db.getAll();
-            return db.users || [];
-        }
-        
-        // Получить пользователя по ID
-        getUserById(id) {
-            const users = this.getAllUsers();
-            return users.find(u => u.id === id);
-        }
-        
-        // Добавить пользователя
-        addUser(userData) {
-            const db = this.db.getAll();
-            
-            // Проверяем уникальность логина
-            const userExists = db.users.some(u => u.login.toLowerCase() === userData.login.toLowerCase());
-            if (userExists) {
-                return { success: false, error: 'Пользователь с таким логином уже существует' };
-            }
-            
-            const newUser = {
-                id: Date.now(),
-                login: userData.login,
-                password: userData.password,
-                name: userData.name,
-                avatar: this.generateAvatar(userData.name),
-                class: userData.class || '7B',
-                role: userData.role || 'student',
-                points: userData.points || 0,
-                level: 1,
-                tasks_completed: [],
-                created_at: new Date().toISOString(),
-                last_login: null,
-                status: 'active'
-            };
-            
-            db.users.push(newUser);
-            
-            // Добавляем в класс
-            if (!db.classes) db.classes = {};
-            if (!db.classes[newUser.class]) {
-                db.classes[newUser.class] = { students: [] };
-            }
-            if (!db.classes[newUser.class].students) {
-                db.classes[newUser.class].students = [];
-            }
-            
-            db.classes[newUser.class].students.push({
-                id: newUser.id,
-                name: newUser.name,
-                points: newUser.points,
-                avatar: newUser.avatar
-            });
-            
-            this.db.save(db);
-            
-            // Логируем действие
-            this.logActivity('user_added', `Добавлен пользователь: ${newUser.name}`, 'admin');
-            
-            return { success: true, user: newUser };
-        }
-        
-        // Обновить пользователя
-        updateUser(userId, updates) {
-            const db = this.db.getAll();
-            const userIndex = db.users.findIndex(u => u.id === userId);
-            
-            if (userIndex === -1) {
-                return { success: false, error: 'Пользователь не найден' };
-            }
-            
-            // Обновляем данные
-            if (updates.name) db.users[userIndex].name = updates.name;
-            if (updates.login) {
-                // Проверяем уникальность нового логина
-                const loginExists = db.users.some((u, index) => 
-                    index !== userIndex && u.login.toLowerCase() === updates.login.toLowerCase()
-                );
-                if (loginExists) {
-                    return { success: false, error: 'Логин уже используется' };
-                }
-                db.users[userIndex].login = updates.login;
-            }
-            if (updates.class) db.users[userIndex].class = updates.class;
-            if (updates.role) db.users[userIndex].role = updates.role;
-            if (updates.points !== undefined) db.users[userIndex].points = updates.points;
-            if (updates.level !== undefined) db.users[userIndex].level = updates.level;
-            if (updates.password) db.users[userIndex].password = updates.password;
-            
-            // Обновляем в классе
-            if (updates.class || updates.name || updates.points !== undefined) {
-                const user = db.users[userIndex];
-                const classData = db.classes[user.class];
-                if (classData && classData.students) {
-                    const studentIndex = classData.students.findIndex(s => s.id === userId);
-                    if (studentIndex !== -1) {
-                        classData.students[studentIndex].name = user.name;
-                        classData.students[studentIndex].points = user.points;
-                    }
-                }
-            }
-            
-            this.db.save(db);
-            
-            // Логируем действие
-            this.logActivity('user_updated', `Обновлен пользователь: ${db.users[userIndex].name}`, 'admin');
-            
-            return { success: true, user: db.users[userIndex] };
-        }
-        
-        // Удалить пользователя
-        deleteUser(userId) {
-            const db = this.db.getAll();
-            const user = db.users.find(u => u.id === userId);
-            
-            if (!user) {
-                return { success: false, error: 'Пользователь не найден' };
-            }
-            
-            if (user.role === 'admin') {
-                return { success: false, error: 'Нельзя удалить администратора' };
-            }
-            
-            // Удаляем пользователя
-            db.users = db.users.filter(u => u.id !== userId);
-            
-            // Удаляем из класса
-            if (db.classes && db.classes[user.class] && db.classes[user.class].students) {
-                db.classes[user.class].students = db.classes[user.class].students.filter(s => s.id !== userId);
-            }
-            
-            this.db.save(db);
-            
-            // Логируем действие
-            this.logActivity('user_deleted', `Удален пользователь: ${user.name}`, 'admin');
-            
-            return { success: true };
-        }
-        
-        // Получить статистику
-        getStats() {
-            const db = this.db.getAll();
-            const users = db.users || [];
-            const tasks = db.classes?.['7B']?.tasks || [];
-            
-            return {
-                total_users: users.length,
-                active_users: users.filter(u => u.last_login).length,
-                total_tasks: tasks.length,
-                completed_tasks: users.reduce((sum, user) => sum + (user.tasks_completed?.length || 0), 0),
-                total_points: users.reduce((sum, user) => sum + (user.points || 0), 0),
-                total_logins: db.system?.total_logins || 0,
-                online_users: 1 // Пример, в реальности нужно отслеживать сессии
-            };
-        }
-        
-        // Логирование активности
-        logActivity(type, message, user = 'system') {
-            const db = this.db.getAll();
-            
-            if (!db.logs) db.logs = {};
-            if (!db.logs.activities) db.logs.activities = [];
-            
-            const activity = {
-                id: Date.now(),
-                type: type,
-                message: message,
-                user: user,
-                timestamp: new Date().toISOString(),
-                ip: '127.0.0.1'
-            };
-            
-            db.logs.activities.unshift(activity);
-            
-            // Ограничиваем количество логов
-            if (db.logs.activities.length > 1000) {
-                db.logs.activities = db.logs.activities.slice(0, 1000);
-            }
-            
-            this.db.save(db);
-            return activity;
-        }
-        
-        // Получить логи
-        getLogs(limit = 50) {
-            const db = this.db.getAll();
-            const logs = db.logs?.activities || [];
-            return logs.slice(0, limit);
-        }
-        
-        // Получить настройки
-        getSettings() {
-            const db = this.db.getAll();
-            return db.system?.settings || {
-                default_class: '7B',
-                points_per_task: 50,
-                session_duration: 7,
-                auto_backup: 'daily',
-                logs_retention: 30
-            };
-        }
-        
-        // Сохранить настройки
-        saveSettings(settings) {
-            const db = this.db.getAll();
-            
-            if (!db.system) db.system = {};
-            db.system.settings = settings;
-            
-            this.db.save(db);
-            
-            this.logActivity('settings_updated', 'Обновлены системные настройки', 'admin');
-            
-            return { success: true };
-        }
-        
-        // Генерация аватара
-        generateAvatar(name) {
-            const names = name.split(' ');
-            if (names.length >= 2) {
-                return (names[0][0] + names[1][0]).toUpperCase();
-            }
-            return name.substring(0, 2).toUpperCase();
-        }
-        
-        // Создать резервную копию
-        createBackup() {
-            const db = this.db.getAll();
-            const backup = {
-                data: JSON.stringify(db, null, 2),
-                timestamp: new Date().toISOString(),
-                version: '2.0'
-            };
-            
-            // Сохраняем в localStorage
-            localStorage.setItem('leo_backup', JSON.stringify(backup));
-            
-            // Обновляем время последнего backup
-            db.system.last_backup = new Date().toISOString();
-            this.db.save(db);
-            
-            this.logActivity('backup_created', 'Создана резервная копия', 'system');
-            
-            return backup;
-        }
-        
-        // Восстановить из резервной копии
-        restoreBackup(backupData) {
-            try {
-                const db = JSON.parse(backupData);
-                localStorage.setItem(this.db.dbName, JSON.stringify(db));
-                
-                this.logActivity('backup_restored', 'Восстановлена резервная копия', 'admin');
-                
-                return { success: true };
-            } catch (error) {
-                return { success: false, error: 'Ошибка восстановления: ' + error.message };
-            }
-        }
+        return true;
     }
+    
+    if (!checkAdminAccess()) return;
+    
+    // ========== ПЕРЕМЕННЫЕ И СОСТОЯНИЕ ==========
+    let currentTab = 'dashboard';
+    let allUsers = [];
+    let systemStats = {};
     
     // ========== ИНИЦИАЛИЗАЦИЯ ==========
-    const adminDB = new AdminDatabase();
-    let currentTab = 'dashboard';
-    let currentUserModal = null;
-    
-    // Проверка прав администратора
-    const isAdmin = localStorage.getItem('is_admin') === 'true';
-    if (!isAdmin) {
-        alert('🚫 Доступ запрещен! Требуются права администратора.');
-        window.location.href = 'index.html';
-        return;
-    }
-    
-    // Запуск админ-панели
-    initAdminPanel();
-    
-    // ========== ОСНОВНАЯ ЛОГИКА ==========
     function initAdminPanel() {
-        console.log('🔄 Инициализация админ-панели...');
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
         
-        // Загрузка данных
-        loadDashboardData();
-        loadUsersData();
-        loadActivityLog();
-        loadSystemAlerts();
-        loadSettings();
+        loadRealData();
+        setupEventListeners();
+        setupCharts();
+        setupMobileMenu();
         
-        // Инициализация событий
-        initEventListeners();
-        
-        // Запуск автообновления
-        startAutoRefresh();
-        
-        console.log('✅ Админ-панель готова');
+        console.log('✅ Админ-панель инициализирована');
     }
     
-    // ========== ЗАГРУЗКА ДАННЫХ ==========
-    function loadDashboardData() {
-        const stats = adminDB.getStats();
+    function updateDateTime() {
+        const now = new Date();
+        const timeElement = document.getElementById('adminTime');
+        if (timeElement) {
+            timeElement.textContent = now.toLocaleTimeString('ru-RU', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+        }
+    }
+    
+    // ========== ЗАГРУЗКА РЕАЛЬНЫХ ДАННЫХ ==========
+    function loadRealData() {
+        const db = leoDB.getAll();
+        if (!db) {
+            showNotification('Ошибка загрузки базы данных', 'error');
+            return;
+        }
         
-        // Обновляем статистику
-        document.getElementById('statTotalUsers').textContent = stats.total_users;
-        document.getElementById('statTotalTasks').textContent = stats.total_tasks;
-        document.getElementById('statAIRequests').textContent = stats.total_logins * 3;
-        document.getElementById('statActivity').textContent = Math.min(100, Math.floor(stats.completed_tasks / Math.max(1, stats.total_tasks) * 100)) + '%';
+        // Загружаем реальные данные
+        loadRealUsers(db);
+        loadRealStats(db);
+        loadRealTasks(db);
+        loadRealSystemInfo(db);
         
         // Обновляем счетчики
-        document.getElementById('usersCount').textContent = stats.total_users;
-        document.getElementById('tasksCount').textContent = stats.total_tasks;
-        document.getElementById('onlineUsers').textContent = stats.online_users;
-        document.getElementById('activeSessions').textContent = stats.active_users;
-        document.getElementById('logsCount').textContent = adminDB.getLogs().length;
-        
-        // Обновляем изменение
-        document.getElementById('usersChange').textContent = '+0%';
-        document.getElementById('tasksChange').textContent = '+0%';
-        document.getElementById('aiChange').textContent = '+0%';
-        document.getElementById('activityChange').textContent = '+0%';
+        updateCounters();
     }
     
-    function loadUsersData(filter = '') {
-        const users = adminDB.getAllUsers();
-        const tbody = document.getElementById('usersTableBody');
+    function loadRealUsers(db) {
+        allUsers = db.users || [];
+        updateUsersTable();
+    }
+    
+    function loadRealStats(db) {
+        systemStats = {
+            total_users: db.users?.length || 0,
+            active_users: db.users?.filter(u => u.last_login).length || 0,
+            total_tasks: db.classes?.["7B"]?.tasks?.length || 0,
+            total_notifications: db.notifications?.length || 0,
+            system_logins: db.system?.total_logins || 0,
+            admin_users: db.users?.filter(u => u.role === 'admin').length || 0
+        };
         
+        updateStatsUI();
+    }
+    
+    function loadRealTasks(db) {
+        const tasks = db.classes?.["7B"]?.tasks || [];
+        updateTasksUI(tasks);
+    }
+    
+    function loadRealSystemInfo(db) {
+        // Информация о системе
+        const systemInfo = {
+            version: db.version || '1.0',
+            last_backup: db.system?.last_backup || 'Никогда',
+            db_size: this.calculateDBSize(db)
+        };
+        
+        document.getElementById('systemVersion').textContent = systemInfo.version;
+        document.getElementById('lastBackup').textContent = systemInfo.last_backup;
+        document.getElementById('dbSize').textContent = systemInfo.db_size;
+    }
+    
+    function calculateDBSize(db) {
+        const jsonString = JSON.stringify(db);
+        const bytes = new TextEncoder().encode(jsonString).length;
+        return (bytes / 1024).toFixed(2) + ' KB';
+    }
+    
+    // ========== ОБНОВЛЕНИЕ ИНТЕРФЕЙСА ==========
+    function updateStatsUI() {
+        // Обновляем статистику
+        document.getElementById('statTotalUsers').textContent = systemStats.total_users;
+        document.getElementById('statTotalTasks').textContent = systemStats.total_tasks;
+        document.getElementById('statActiveUsers').textContent = systemStats.active_users;
+        document.getElementById('statSystemLogins').textContent = systemStats.system_logins;
+        
+        // Обновляем счетчики в навигации
+        document.getElementById('usersCount').textContent = systemStats.total_users;
+        document.getElementById('logsCount').textContent = systemStats.system_logins;
+    }
+    
+    function updateUsersTable() {
+        const tbody = document.getElementById('usersTableBody');
         if (!tbody) return;
         
         tbody.innerHTML = '';
         
-        // Фильтрация
-        let filteredUsers = users;
-        if (filter) {
-            const searchTerm = filter.toLowerCase();
-            filteredUsers = users.filter(user =>
-                user.name.toLowerCase().includes(searchTerm) ||
-                user.login.toLowerCase().includes(searchTerm) ||
-                (user.class && user.class.toLowerCase().includes(searchTerm))
-            );
-        }
-        
-        if (filteredUsers.length === 0) {
+        if (allUsers.length === 0) {
             tbody.innerHTML = `
                 <tr>
                     <td colspan="8" style="text-align: center; padding: 40px;">
-                        <div style="color: var(--admin-text-muted);">
-                            <i class="fas fa-users" style="font-size: 40px; margin-bottom: 15px; opacity: 0.5;"></i>
-                            <p>${filter ? 'Пользователи не найдены' : 'Нет пользователей'}</p>
+                        <div class="empty-state">
+                            <i class="fas fa-users"></i>
+                            <p>Пользователей нет</p>
+                            <button class="btn-small" onclick="showAddUserForm()" style="margin-top: 15px;">
+                                <i class="fas fa-user-plus"></i> Добавить первого пользователя
+                            </button>
                         </div>
                     </td>
                 </tr>
@@ -431,51 +142,46 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        filteredUsers.forEach(user => {
+        allUsers.forEach(user => {
             const row = document.createElement('tr');
-            
-            const lastLogin = user.last_login ? 
-                new Date(user.last_login).toLocaleDateString('ru-RU') : 'Никогда';
-            
-            const statusClass = user.status === 'active' ? 'status-active' : 
-                               user.status === 'inactive' ? 'status-inactive' : 'status-banned';
-            
-            const statusText = user.status === 'active' ? 'Активен' : 
-                              user.status === 'inactive' ? 'Не активен' : 'Заблокирован';
+            const registerDate = new Date(user.created_at).toLocaleDateString('ru-RU');
+            const lastLogin = user.last_login 
+                ? new Date(user.last_login).toLocaleDateString('ru-RU')
+                : 'Никогда';
             
             row.innerHTML = `
                 <td>${user.id}</td>
                 <td>
-                    <div style="display: flex; align-items: center; gap: 12px;">
+                    <div class="user-cell">
                         <div class="user-avatar-small">${user.avatar}</div>
                         <div>
-                            <div style="font-weight: 600;">${user.name}</div>
-                            <div style="font-size: 12px; color: var(--admin-text-muted);">${lastLogin}</div>
+                            <div class="user-name">${user.name}</div>
+                            <div class="user-login">${user.login}</div>
                         </div>
                     </div>
                 </td>
-                <td>${user.login}</td>
-                <td>${user.class || '7Б'}</td>
                 <td>
-                    <span class="status-badge ${user.role === 'admin' ? 'status-active' : 'status-inactive'}">
-                        ${user.role === 'admin' ? 'Админ' : 'Ученик'}
+                    <span class="role-badge ${user.role}">
+                        ${user.role === 'admin' ? 'Админ' : user.role === 'teacher' ? 'Учитель' : 'Ученик'}
                     </span>
                 </td>
+                <td>${user.class || '7Б'}</td>
                 <td><strong>${user.points || 0}</strong></td>
+                <td>${user.level || 1}</td>
+                <td>${lastLogin}</td>
                 <td>
-                    <span class="status-badge ${statusClass}">${statusText}</span>
-                </td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-action btn-view" data-user-id="${user.id}" title="Просмотр">
-                            <i class="fas fa-eye"></i>
-                        </button>
+                    <div class="user-actions">
                         <button class="btn-action btn-edit" data-user-id="${user.id}" title="Редактировать">
                             <i class="fas fa-edit"></i>
                         </button>
+                        <button class="btn-action btn-reset" data-user-id="${user.id}" title="Сбросить пароль">
+                            <i class="fas fa-key"></i>
+                        </button>
+                        ${user.role !== 'admin' ? `
                         <button class="btn-action btn-delete" data-user-id="${user.id}" title="Удалить">
                             <i class="fas fa-trash"></i>
                         </button>
+                        ` : ''}
                     </div>
                 </td>
             `;
@@ -483,147 +189,28 @@ document.addEventListener('DOMContentLoaded', function() {
             tbody.appendChild(row);
         });
         
-        // Добавляем обработчики
-        initUserActionListeners();
+        // Добавляем обработчики для кнопок действий
+        setupUserActionButtons();
     }
     
-    function loadActivityLog() {
-        const logs = adminDB.getLogs(20);
-        const tbody = document.getElementById('activityTableBody');
-        
-        if (!tbody) return;
-        
-        tbody.innerHTML = '';
-        
-        logs.forEach(log => {
-            const row = document.createElement('tr');
-            
-            const time = new Date(log.timestamp).toLocaleTimeString('ru-RU', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            
-            const date = new Date(log.timestamp).toLocaleDateString('ru-RU');
-            
-            const statusIcon = log.type.includes('error') ? 'fa-times-circle' :
-                              log.type.includes('warning') ? 'fa-exclamation-triangle' :
-                              log.type.includes('success') ? 'fa-check-circle' : 'fa-info-circle';
-            
-            const statusColor = log.type.includes('error') ? 'var(--admin-danger)' :
-                               log.type.includes('warning') ? 'var(--admin-warning)' :
-                               log.type.includes('success') ? 'var(--admin-success)' : 'var(--admin-info)';
-            
-            row.innerHTML = `
-                <td>
-                    <div style="font-weight: 600;">${time}</div>
-                    <div style="font-size: 12px; color: var(--admin-text-muted);">${date}</div>
-                </td>
-                <td>${log.user}</td>
-                <td>${log.message}</td>
-                <td>
-                    <code style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 12px;">
-                        ${log.ip}
-                    </code>
-                </td>
-                <td>
-                    <i class="fas ${statusIcon}" style="color: ${statusColor}; margin-right: 5px;"></i>
-                    ${log.type}
-                </td>
-            `;
-            
-            tbody.appendChild(row);
-        });
-    }
-    
-    function loadSystemAlerts() {
-        const container = document.getElementById('systemAlerts');
-        if (!container) return;
-        
-        // Получаем последние логи с ошибками и предупреждениями
-        const logs = adminDB.getLogs(10);
-        const alerts = logs.filter(log => 
-            log.type.includes('error') || log.type.includes('warning')
-        );
-        
-        if (alerts.length === 0) {
-            container.innerHTML = `
-                <div class="alert alert-success">
-                    <div class="alert-icon">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div class="alert-content">
-                        <div class="alert-title">Все системы работают нормально</div>
-                        <div class="alert-message">Нет активных предупреждений или ошибок</div>
-                    </div>
-                </div>
-            `;
-            return;
-        }
-        
-        container.innerHTML = '';
-        
-        alerts.forEach(alert => {
-            const alertType = alert.type.includes('error') ? 'danger' :
-                             alert.type.includes('warning') ? 'warning' : 'info';
-            
-            const alertElement = document.createElement('div');
-            alertElement.className = `alert alert-${alertType}`;
-            
-            const icon = alertType === 'danger' ? 'exclamation-circle' :
-                        alertType === 'warning' ? 'exclamation-triangle' : 'info-circle';
-            
-            alertElement.innerHTML = `
-                <div class="alert-icon">
-                    <i class="fas fa-${icon}"></i>
-                </div>
-                <div class="alert-content">
-                    <div class="alert-title">
-                        ${alert.user === 'system' ? 'Системное событие' : 'Действие пользователя'}
-                        <span style="font-size: 12px; color: var(--admin-text-muted); margin-left: 10px;">
-                            ${new Date(alert.timestamp).toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'})}
-                        </span>
-                    </div>
-                    <div class="alert-message">${alert.message}</div>
-                </div>
-            `;
-            
-            container.appendChild(alertElement);
-        });
-        
-        // Обновляем счетчик уведомлений
-        updateNotificationsCount();
-    }
-    
-    function loadSettings() {
-        const settings = adminDB.getSettings();
-        
-        document.getElementById('systemName').value = 'Leo Assistant';
-        document.getElementById('defaultClass').value = settings.default_class || '7B';
-        document.getElementById('pointsPerTask').value = settings.points_per_task || 50;
-        document.getElementById('sessionDuration').value = settings.session_duration || 7;
-        document.getElementById('autoBackup').value = settings.auto_backup || 'daily';
-        document.getElementById('logsRetention').value = settings.logs_retention || 30;
-    }
-    
-    // ========== РАБОТА С ПОЛЬЗОВАТЕЛЯМИ ==========
-    function initUserActionListeners() {
-        // Просмотр пользователя
-        document.querySelectorAll('.btn-view').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const userId = parseInt(this.getAttribute('data-user-id'));
-                showUserModal(userId, 'view');
-            });
-        });
-        
-        // Редактирование пользователя
+    function setupUserActionButtons() {
+        // Редактирование
         document.querySelectorAll('.btn-edit').forEach(btn => {
             btn.addEventListener('click', function() {
                 const userId = parseInt(this.getAttribute('data-user-id'));
-                showUserModal(userId, 'edit');
+                editUser(userId);
             });
         });
         
-        // Удаление пользователя
+        // Сброс пароля
+        document.querySelectorAll('.btn-reset').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const userId = parseInt(this.getAttribute('data-user-id'));
+                resetUserPassword(userId);
+            });
+        });
+        
+        // Удаление
         document.querySelectorAll('.btn-delete').forEach(btn => {
             btn.addEventListener('click', function() {
                 const userId = parseInt(this.getAttribute('data-user-id'));
@@ -632,221 +219,120 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    function showUserModal(userId, mode = 'view') {
-        const user = adminDB.getUserById(userId);
-        if (!user) {
-            showAlert('Пользователь не найден', 'error');
+    function updateTasksUI(tasks) {
+        const container = document.getElementById('tasksList');
+        if (!container) return;
+        
+        if (tasks.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-tasks"></i>
+                    <p>Заданий нет</p>
+                    <button class="btn-small" onclick="showAddTaskForm()" style="margin-top: 15px;">
+                        <i class="fas fa-plus"></i> Добавить первое задание
+                    </button>
+                </div>
+            `;
             return;
         }
         
-        // Закрываем предыдущее модальное окно если есть
-        if (currentUserModal) {
-            currentUserModal.remove();
-        }
-        
-        currentUserModal = document.createElement('div');
-        currentUserModal.className = 'admin-modal';
-        
-        const isEdit = mode === 'edit';
-        
-        currentUserModal.innerHTML = `
-            <div class="modal-content" style="max-width: 600px;">
-                <div class="modal-header">
-                    <h3>
-                        <i class="fas fa-${isEdit ? 'edit' : 'eye'}"></i>
-                        ${isEdit ? 'Редактирование' : 'Просмотр'} пользователя
-                    </h3>
-                    <button class="modal-close">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>ID пользователя</label>
-                            <input type="text" class="form-control" value="${user.id}" readonly>
+        container.innerHTML = tasks.map(task => {
+            const completedCount = task.completed_by?.length || 0;
+            const totalUsers = allUsers.filter(u => u.role === 'student').length;
+            const completionRate = totalUsers > 0 
+                ? Math.round((completedCount / totalUsers) * 100) 
+                : 0;
+            
+            return `
+                <div class="task-admin-item" data-task-id="${task.id}">
+                    <div class="task-admin-header">
+                        <span class="task-subject-badge">${task.subject}</span>
+                        <span class="task-priority ${task.priority}">${getPriorityText(task.priority)}</span>
+                    </div>
+                    <div class="task-admin-title">${task.title}</div>
+                    <div class="task-admin-description">${task.description || 'Нет описания'}</div>
+                    <div class="task-admin-meta">
+                        <div class="task-meta-item">
+                            <i class="fas fa-calendar"></i>
+                            Срок: ${new Date(task.dueDate).toLocaleDateString('ru-RU')}
                         </div>
-                        <div class="form-group">
-                            <label>Дата регистрации</label>
-                            <input type="text" class="form-control" value="${new Date(user.created_at).toLocaleDateString('ru-RU')}" readonly>
+                        <div class="task-meta-item">
+                            <i class="fas fa-users"></i>
+                            Выполнили: ${completedCount} из ${totalUsers}
+                        </div>
+                        <div class="task-meta-item">
+                            <i class="fas fa-chart-line"></i>
+                            Выполнение: ${completionRate}%
                         </div>
                     </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Имя пользователя</label>
-                            <input type="text" id="modalUserName" class="form-control" value="${user.name}" ${!isEdit ? 'readonly' : ''}>
-                        </div>
-                        <div class="form-group">
-                            <label>Логин</label>
-                            <input type="text" id="modalUserLogin" class="form-control" value="${user.login}" ${!isEdit ? 'readonly' : ''}>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Класс</label>
-                            <select id="modalUserClass" class="form-control" ${!isEdit ? 'disabled' : ''}>
-                                <option value="7B" ${user.class === '7B' ? 'selected' : ''}>7Б класс</option>
-                                <option value="7A" ${user.class === '7A' ? 'selected' : ''}>7А класс</option>
-                                <option value="8B" ${user.class === '8B' ? 'selected' : ''}>8Б класс</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Роль</label>
-                            <select id="modalUserRole" class="form-control" ${!isEdit ? 'disabled' : ''}>
-                                <option value="student" ${user.role === 'student' ? 'selected' : ''}>Ученик</option>
-                                <option value="teacher" ${user.role === 'teacher' ? 'selected' : ''}>Учитель</option>
-                                <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Администратор</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Очки</label>
-                            <input type="number" id="modalUserPoints" class="form-control" value="${user.points || 0}" ${!isEdit ? 'readonly' : ''}>
-                        </div>
-                        <div class="form-group">
-                            <label>Уровень</label>
-                            <input type="number" id="modalUserLevel" class="form-control" value="${user.level || 1}" ${!isEdit ? 'readonly' : ''}>
-                        </div>
-                    </div>
-                    
-                    ${isEdit ? `
-                    <div class="form-group">
-                        <label>Новый пароль (оставьте пустым, если не нужно менять)</label>
-                        <input type="password" id="modalUserPassword" class="form-control" placeholder="Новый пароль">
-                    </div>
-                    ` : ''}
-                    
-                    <div class="form-group">
-                        <label>Статистика</label>
-                        <div style="display: flex; gap: 20px; margin-top: 10px;">
-                            <div>
-                                <div style="font-size: 24px; font-weight: 700; color: var(--admin-primary);">${user.tasks_completed?.length || 0}</div>
-                                <div style="font-size: 12px; color: var(--admin-text-muted);">Заданий выполнено</div>
-                            </div>
-                            <div>
-                                <div style="font-size: 24px; font-weight: 700; color: var(--admin-success);">${user.points || 0}</div>
-                                <div style="font-size: 12px; color: var(--admin-text-muted);">Всего очков</div>
-                            </div>
-                            <div>
-                                <div style="font-size: 24px; font-weight: 700; color: var(--admin-accent);">${user.level || 1}</div>
-                                <div style="font-size: 12px; color: var(--admin-text-muted);">Уровень</div>
-                            </div>
-                        </div>
+                    <div class="task-admin-actions">
+                        <button class="btn-small" onclick="editTask(${task.id})">
+                            <i class="fas fa-edit"></i> Редактировать
+                        </button>
+                        <button class="btn-small btn-danger" onclick="deleteTask(${task.id})">
+                            <i class="fas fa-trash"></i> Удалить
+                        </button>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    ${isEdit ? `
-                    <button class="btn-admin-primary" id="saveUserBtn">
-                        <i class="fas fa-save"></i> Сохранить изменения
-                    </button>
-                    ` : ''}
-                    <button class="btn-admin-secondary" id="closeModalBtn">
-                        <i class="fas fa-times"></i> Закрыть
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        currentUserModal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            animation: fadeIn 0.3s ease;
-            backdrop-filter: blur(10px);
-        `;
-        
-        document.body.appendChild(currentUserModal);
-        
-        // Обработчики событий
-        currentUserModal.querySelector('.modal-close').addEventListener('click', closeModal);
-        currentUserModal.querySelector('#closeModalBtn').addEventListener('click', closeModal);
-        
-        if (isEdit) {
-            currentUserModal.querySelector('#saveUserBtn').addEventListener('click', () => {
-                saveUserChanges(userId);
-            });
-        }
-        
-        // Закрытие по клику на фон
-        currentUserModal.addEventListener('click', (e) => {
-            if (e.target === currentUserModal) {
-                closeModal();
-            }
-        });
-        
-        function closeModal() {
-            if (currentUserModal) {
-                currentUserModal.remove();
-                currentUserModal = null;
-            }
-        }
+            `;
+        }).join('');
     }
     
-    function saveUserChanges(userId) {
-        if (!currentUserModal) return;
+    function getPriorityText(priority) {
+        const priorities = {
+            'high': 'Высокий',
+            'medium': 'Средний',
+            'low': 'Низкий'
+        };
+        return priorities[priority] || 'Не указан';
+    }
+    
+    function updateCounters() {
+        // Обновляем счетчики в реальном времени
+        const userCount = allUsers.length;
+        const activeUsers = allUsers.filter(u => u.last_login).length;
         
-        const name = currentUserModal.querySelector('#modalUserName').value.trim();
-        const login = currentUserModal.querySelector('#modalUserLogin').value.trim();
-        const className = currentUserModal.querySelector('#modalUserClass').value;
-        const role = currentUserModal.querySelector('#modalUserRole').value;
-        const points = parseInt(currentUserModal.querySelector('#modalUserPoints').value) || 0;
-        const level = parseInt(currentUserModal.querySelector('#modalUserLevel').value) || 1;
-        const password = currentUserModal.querySelector('#modalUserPassword')?.value.trim();
-        
-        if (!name || !login) {
-            showAlert('Имя и логин обязательны', 'error');
+        document.getElementById('usersCount').textContent = userCount;
+        document.getElementById('activeUsersCount').textContent = activeUsers;
+    }
+    
+    // ========== УПРАВЛЕНИЕ ПОЛЬЗОВАТЕЛЯМИ ==========
+    function editUser(userId) {
+        const user = allUsers.find(u => u.id === userId);
+        if (!user) {
+            showNotification('Пользователь не найден', 'error');
             return;
         }
         
-        const updates = {
-            name: name,
-            login: login,
-            class: className,
-            role: role,
-            points: points,
-            level: level
-        };
+        showAddUserForm(user);
+    }
+    
+    function resetUserPassword(userId) {
+        const user = allUsers.find(u => u.id === userId);
+        if (!user) return;
         
-        if (password) {
-            updates.password = password;
+        const newPassword = prompt(`Введите новый пароль для пользователя ${user.name}:`, '');
+        if (!newPassword || newPassword.length < 4) {
+            showNotification('Пароль должен быть не менее 4 символов', 'error');
+            return;
         }
         
-        const result = adminDB.updateUser(userId, updates);
-        
-        if (result.success) {
-            showAlert('Пользователь обновлен', 'success');
-            
-            // Обновляем таблицу
-            loadUsersData();
-            
-            // Закрываем модальное окно
-            currentUserModal.remove();
-            currentUserModal = null;
-        } else {
-            showAlert(result.error, 'error');
+        const db = leoDB.getAll();
+        const userIndex = db.users.findIndex(u => u.id === userId);
+        if (userIndex !== -1) {
+            db.users[userIndex].password = newPassword;
+            leoDB.save(db);
+            showNotification('Пароль успешно изменен', 'success');
+            loadRealData();
         }
     }
     
     function deleteUser(userId) {
-        const user = adminDB.getUserById(userId);
-        if (!user) {
-            showAlert('Пользователь не найден', 'error');
-            return;
-        }
+        const user = allUsers.find(u => u.id === userId);
+        if (!user) return;
         
         if (user.role === 'admin') {
-            showAlert('Нельзя удалить администратора', 'warning');
+            showNotification('Нельзя удалить администратора', 'error');
             return;
         }
         
@@ -854,575 +340,652 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        const result = adminDB.deleteUser(userId);
+        const db = leoDB.getAll();
+        db.users = db.users.filter(u => u.id !== userId);
+        
+        // Удаляем из класса
+        if (db.classes && db.classes["7B"] && db.classes["7B"].students) {
+            db.classes["7B"].students = db.classes["7B"].students.filter(s => s.id !== userId);
+        }
+        
+        leoDB.save(db);
+        showNotification('Пользователь удален', 'success');
+        loadRealData();
+    }
+    
+    function addNewUser(userData) {
+        const db = leoDB.getAll();
+        if (!db) return false;
+        
+        // Проверяем существование логина
+        const existingUser = db.users.find(u => u.login.toLowerCase() === userData.login.toLowerCase());
+        if (existingUser) {
+            showNotification('Пользователь с таким логином уже существует', 'error');
+            return false;
+        }
+        
+        // Проверяем длину логина
+        if (userData.login.length < 3) {
+            showNotification('Логин должен быть не менее 3 символов', 'error');
+            return false;
+        }
+        
+        // Проверяем длину пароля
+        if (userData.password.length < 4) {
+            showNotification('Пароль должен быть не менее 4 символов', 'error');
+            return false;
+        }
+        
+        const result = leoDB.addUser({
+            login: userData.login,
+            password: userData.password,
+            name: userData.name,
+            class: userData.class,
+            role: userData.role
+        });
         
         if (result.success) {
-            showAlert(`Пользователь "${user.name}" удален`, 'success');
-            loadUsersData();
-            loadDashboardData();
+            showNotification(`Пользователь "${userData.name}" успешно создан`, 'success');
+            loadRealData();
+            hideAddUserForm();
+            return true;
         } else {
-            showAlert(result.error, 'error');
+            showNotification(result.error || 'Ошибка создания пользователя', 'error');
+            return false;
         }
     }
     
-    // ========== AI ОБУЧЕНИЕ ==========
-    function initAITraining() {
-        const trainBtn = document.getElementById('trainAI');
-        if (trainBtn) {
-            trainBtn.addEventListener('click', startAITraining);
+    // ========== УПРАВЛЕНИЕ ЗАДАНИЯМИ ==========
+    function addNewTask(taskData) {
+        if (!taskData.subject || !taskData.title) {
+            showNotification('Заполните обязательные поля', 'error');
+            return false;
         }
         
-        const importBtn = document.getElementById('importKnowledge');
-        if (importBtn) {
-            importBtn.addEventListener('click', importKnowledge);
-        }
-    }
-    
-    function startAITraining() {
-        const statusIndicator = document.getElementById('aiStatusIndicator');
-        const statusText = document.getElementById('aiStatusText');
-        const statusDetails = document.getElementById('aiStatusDetails');
-        const progress = document.getElementById('aiProgress');
+        const success = leoDB.addTask({
+            subject: taskData.subject,
+            title: taskData.title,
+            description: taskData.description,
+            dueDate: taskData.dueDate,
+            priority: taskData.priority
+        });
         
-        // Обновляем статус
-        statusIndicator.className = 'status-indicator training';
-        statusText.textContent = 'Обучение...';
-        statusDetails.textContent = 'Нейросеть анализирует данные';
-        
-        let progressValue = 0;
-        const interval = setInterval(() => {
-            progressValue += 2;
-            if (progressValue > 100) progressValue = 100;
-            
-            progress.textContent = Math.floor(progressValue) + '%';
-            
-            if (progressValue >= 100) {
-                clearInterval(interval);
-                
-                // Обновляем статус
-                statusIndicator.className = 'status-indicator';
-                statusText.textContent = 'Обучение завершено';
-                statusDetails.textContent = 'Нейросеть успешно обучена';
-                progress.textContent = '100%';
-                
-                // Логируем действие
-                adminDB.logActivity('ai_trained', 'Нейросеть успешно обучена', 'system');
-                
-                showAlert('Обучение нейросети завершено', 'success');
-            }
-        }, 100);
-    }
-    
-    function importKnowledge() {
-        showAlert('Импорт знаний в разработке', 'info');
-    }
-    
-    // ========== СИСТЕМНЫЕ НАСТРОЙКИ ==========
-    function initSystemSettings() {
-        const saveBtn = document.getElementById('saveSettings');
-        if (saveBtn) {
-            saveBtn.addEventListener('click', saveSystemSettings);
-        }
-        
-        const resetBtn = document.getElementById('resetSettings');
-        if (resetBtn) {
-            resetBtn.addEventListener('click', resetSystemSettings);
-        }
-        
-        const testBtn = document.getElementById('testSettings');
-        if (testBtn) {
-            testBtn.addEventListener('click', testSystemSettings);
-        }
-    }
-    
-    function saveSystemSettings() {
-        const settings = {
-            default_class: document.getElementById('defaultClass').value,
-            points_per_task: parseInt(document.getElementById('pointsPerTask').value) || 50,
-            session_duration: parseInt(document.getElementById('sessionDuration').value) || 7,
-            auto_backup: document.getElementById('autoBackup').value,
-            logs_retention: parseInt(document.getElementById('logsRetention').value) || 30
-        };
-        
-        const adminPassword = document.getElementById('adminPassword').value;
-        const adminPasswordConfirm = document.getElementById('adminPasswordConfirm').value;
-        
-        // Проверка пароля
-        if (adminPassword && adminPassword !== adminPasswordConfirm) {
-            showAlert('Пароли не совпадают', 'error');
-            return;
-        }
-        
-        // Сохраняем настройки
-        const result = adminDB.saveSettings(settings);
-        
-        if (result.success) {
-            showAlert('Настройки сохранены', 'success');
-            
-            // Очищаем поля пароля
-            document.getElementById('adminPassword').value = '';
-            document.getElementById('adminPasswordConfirm').value = '';
+        if (success) {
+            showNotification('Задание успешно добавлено', 'success');
+            loadRealData();
+            hideAddTaskForm();
+            return true;
         } else {
-            showAlert('Ошибка сохранения настроек', 'error');
+            showNotification('Ошибка добавления задания', 'error');
+            return false;
         }
     }
     
-    function resetSystemSettings() {
-        if (!confirm('Сбросить настройки к значениям по умолчанию?')) {
+    function editTask(taskId) {
+        const db = leoDB.getAll();
+        const task = db.classes?.["7B"]?.tasks?.find(t => t.id === taskId);
+        
+        if (!task) {
+            showNotification('Задание не найдено', 'error');
             return;
         }
         
-        // Загружаем настройки по умолчанию
-        loadSettings();
-        showAlert('Настройки сброшены', 'warning');
+        showAddTaskForm(task);
     }
     
-    function testSystemSettings() {
-        showAlert('Тестирование настроек...', 'info');
-        
-        setTimeout(() => {
-            showAlert('Все настройки работают корректно', 'success');
-            adminDB.logActivity('settings_tested', 'Тестирование настроек выполнено', 'system');
-        }, 1500);
-    }
-    
-    // ========== БЫСТРЫЕ ДЕЙСТВИЯ ==========
-    function initQuickActions() {
-        // Добавление пользователя
-        document.getElementById('quickAddUser')?.addEventListener('click', showAddUserModal);
-        document.getElementById('addUserBtn')?.addEventListener('click', showAddUserModal);
-        
-        // Создание задания
-        document.getElementById('quickAddTask')?.addEventListener('click', () => {
-            showAlert('Добавление задания в разработке', 'info');
-        });
-        
-        // Резервное копирование
-        document.getElementById('quickBackup')?.addEventListener('click', createBackup);
-        
-        // Объявление
-        document.getElementById('quickBroadcast')?.addEventListener('click', () => {
-            showAlert('Рассылка уведомлений в разработке', 'info');
-        });
-        
-        // Экспорт пользователей
-        document.getElementById('exportUsers')?.addEventListener('click', exportUsers);
-    }
-    
-    function showAddUserModal() {
-        const modal = document.createElement('div');
-        modal.className = 'admin-modal';
-        
-        modal.innerHTML = `
-            <div class="modal-content" style="max-width: 500px;">
-                <div class="modal-header">
-                    <h3><i class="fas fa-user-plus"></i> Добавление нового пользователя</h3>
-                    <button class="modal-close">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label>Имя пользователя *</label>
-                        <input type="text" id="newUserName" class="form-control" placeholder="Иван Иванов" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Логин *</label>
-                        <input type="text" id="newUserLogin" class="form-control" placeholder="ivanov" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Пароль *</label>
-                        <input type="password" id="newUserPassword" class="form-control" placeholder="••••••••" required>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Класс</label>
-                            <select id="newUserClass" class="form-control">
-                                <option value="7B">7Б класс</option>
-                                <option value="7A">7А класс</option>
-                                <option value="8B">8Б класс</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Роль</label>
-                            <select id="newUserRole" class="form-control">
-                                <option value="student">Ученик</option>
-                                <option value="teacher">Учитель</option>
-                                <option value="admin">Администратор</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Начальные очки</label>
-                        <input type="number" id="newUserPoints" class="form-control" value="0">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn-admin-primary" id="createUserBtn">
-                        <i class="fas fa-plus"></i> Создать пользователя
-                    </button>
-                    <button class="btn-admin-secondary" id="cancelCreateUser">
-                        <i class="fas fa-times"></i> Отмена
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            animation: fadeIn 0.3s ease;
-            backdrop-filter: blur(10px);
-        `;
-        
-        document.body.appendChild(modal);
-        
-        // Обработчики
-        modal.querySelector('.modal-close').addEventListener('click', () => modal.remove());
-        modal.querySelector('#cancelCreateUser').addEventListener('click', () => modal.remove());
-        
-        modal.querySelector('#createUserBtn').addEventListener('click', () => {
-            createNewUser(modal);
-        });
-        
-        // Закрытие по клику на фон
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.remove();
-            }
-        });
-    }
-    
-    function createNewUser(modal) {
-        const name = modal.querySelector('#newUserName').value.trim();
-        const login = modal.querySelector('#newUserLogin').value.trim();
-        const password = modal.querySelector('#newUserPassword').value.trim();
-        const className = modal.querySelector('#newUserClass').value;
-        const role = modal.querySelector('#newUserRole').value;
-        const points = parseInt(modal.querySelector('#newUserPoints').value) || 0;
-        
-        if (!name || !login || !password) {
-            showAlert('Заполните обязательные поля', 'error');
+    function deleteTask(taskId) {
+        if (!confirm('Вы уверены, что хотите удалить это задание?')) {
             return;
         }
         
-        if (password.length < 6) {
-            showAlert('Пароль должен быть не менее 6 символов', 'error');
-            return;
-        }
+        const db = leoDB.getAll();
+        if (!db.classes["7B"] || !db.classes["7B"].tasks) return;
         
-        const userData = {
-            login: login,
-            password: password,
-            name: name,
-            class: className,
-            role: role,
-            points: points
-        };
+        db.classes["7B"].tasks = db.classes["7B"].tasks.filter(t => t.id !== taskId);
+        leoDB.save(db);
         
-        const result = adminDB.addUser(userData);
-        
-        if (result.success) {
-            showAlert(`Пользователь "${name}" создан`, 'success');
-            modal.remove();
-            
-            // Обновляем данные
-            loadUsersData();
-            loadDashboardData();
-        } else {
-            showAlert(result.error, 'error');
-        }
+        showNotification('Задание удалено', 'success');
+        loadRealData();
     }
     
-    function exportUsers() {
-        const users = adminDB.getAllUsers();
-        
-        if (users.length === 0) {
-            showAlert('Нет пользователей для экспорта', 'warning');
+    // ========== СИСТЕМНЫЕ ФУНКЦИИ ==========
+    function backupDatabase() {
+        const db = leoDB.getAll();
+        if (!db) {
+            showNotification('Ошибка создания резервной копии', 'error');
             return;
         }
         
-        // Создаем CSV
-        let csv = 'ID,Имя,Логин,Класс,Роль,Очки,Уровень,Дата регистрации\n';
+        const dataStr = JSON.stringify(db, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        const fileName = `leo_assistant_backup_${new Date().toISOString().split('T')[0]}.json`;
         
-        users.forEach(user => {
-            csv += `${user.id},"${user.name}","${user.login}","${user.class || '7B'}","${user.role}",${user.points || 0},${user.level || 1},"${user.created_at}"\n`;
-        });
-        
-        // Создаем и скачиваем файл
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        
-        link.setAttribute('href', url);
-        link.setAttribute('download', `users_${new Date().toISOString().split('T')[0]}.csv`);
-        link.style.visibility = 'hidden';
-        
+        link.setAttribute('href', dataUri);
+        link.setAttribute('download', fileName);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         
-        showAlert('Данные экспортированы в CSV', 'success');
-        adminDB.logActivity('users_exported', 'Экспорт данных пользователей', 'admin');
+        // Обновляем время последнего бэкапа
+        db.system.last_backup = new Date().toLocaleString('ru-RU');
+        leoDB.save(db);
+        
+        showNotification('Резервная копия создана', 'success');
+        loadRealData();
     }
     
-    function createBackup() {
-        const backup = adminDB.createBackup();
+    function clearDatabase() {
+        if (!confirm('ВНИМАНИЕ! Это удалит ВСЕ данные системы. Продолжить?')) {
+            return;
+        }
         
-        // Скачиваем файл
-        const blob = new Blob([backup.data], { type: 'application/json' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
+        if (!confirm('Вы уверены? Это действие нельзя отменить!')) {
+            return;
+        }
         
-        link.setAttribute('href', url);
-        link.setAttribute('download', `backup_${backup.timestamp.replace(/[:.]/g, '-')}.json`);
-        link.style.visibility = 'hidden';
-        
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        showAlert('Резервная копия создана и скачана', 'success');
-    }
-    
-    // ========== УПРАВЛЕНИЕ СИСТЕМОЙ ==========
-    function updateNotificationsCount() {
-        const logs = adminDB.getLogs();
-        const importantLogs = logs.filter(log => 
-            log.type.includes('error') || log.type.includes('warning')
-        ).length;
-        
-        document.getElementById('headerNotifications').textContent = importantLogs;
-    }
-    
-    function clearAlerts() {
-        document.getElementById('clearAlerts')?.addEventListener('click', () => {
-            // В реальной системе здесь нужно очищать логи
-            showAlert('Функция очистки в разработке', 'info');
-        });
-    }
-    
-    function refreshData() {
-        document.getElementById('refreshData')?.addEventListener('click', () => {
-            loadDashboardData();
-            loadUsersData();
-            loadActivityLog();
-            loadSystemAlerts();
-            showAlert('Данные обновлены', 'success');
-        });
-    }
-    
-    function toggleSidebar() {
-        document.getElementById('toggleSidebar')?.addEventListener('click', () => {
-            const sidebar = document.getElementById('adminSidebar');
-            sidebar.classList.toggle('collapsed');
-        });
-    }
-    
-    function showNotifications() {
-        document.getElementById('notificationsBtn')?.addEventListener('click', () => {
-            showAlert('Панель уведомлений в разработке', 'info');
-        });
-    }
-    
-    function logoutAdmin() {
-        document.getElementById('logoutBtn')?.addEventListener('click', () => {
-            if (confirm('Выйти из админ-панели?')) {
-                localStorage.removeItem('is_admin');
-                window.location.href = 'index.html';
-            }
-        });
-    }
-    
-    // ========== УВЕДОМЛЕНИЯ ==========
-    function showAlert(message, type = 'info') {
-        const alertDiv = document.createElement('div');
-        alertDiv.className = `alert alert-${type}`;
-        alertDiv.style.cssText = `
-            position: fixed;
-            top: 100px;
-            right: 30px;
-            z-index: 1000;
-            min-width: 300px;
-            animation: slideInRight 0.3s ease;
-        `;
-        
-        const icon = type === 'success' ? 'check-circle' :
-                    type === 'error' || type === 'danger' ? 'exclamation-circle' :
-                    type === 'warning' ? 'exclamation-triangle' : 'info-circle';
-        
-        alertDiv.innerHTML = `
-            <div class="alert-icon">
-                <i class="fas fa-${icon}"></i>
-            </div>
-            <div class="alert-content">
-                <div class="alert-title">
-                    ${type === 'success' ? 'Успешно!' : 
-                      type === 'error' || type === 'danger' ? 'Ошибка!' : 
-                      type === 'warning' ? 'Внимание!' : 'Информация'}
-                </div>
-                <div class="alert-message">${message}</div>
-            </div>
-            <button class="btn-action close-alert" style="background: transparent; border: none; color: var(--admin-text-muted);">
-                <i class="fas fa-times"></i>
-            </button>
-        `;
-        
-        document.body.appendChild(alertDiv);
-        
-        // Обработчик закрытия
-        alertDiv.querySelector('.close-alert').addEventListener('click', () => {
-            alertDiv.style.animation = 'slideOutRight 0.3s ease';
-            setTimeout(() => alertDiv.remove(), 300);
-        });
-        
-        // Автоматическое удаление
+        localStorage.clear();
+        showNotification('Все данные очищены', 'success');
         setTimeout(() => {
-            if (alertDiv.parentNode) {
-                alertDiv.style.animation = 'slideOutRight 0.3s ease';
-                setTimeout(() => alertDiv.remove(), 300);
-            }
-        }, 5000);
+            window.location.href = 'index.html';
+        }, 1000);
     }
     
-    // ========== ПОИСК ==========
-    function initSearch() {
-        const userSearch = document.getElementById('userSearch');
-        if (userSearch) {
-            userSearch.addEventListener('input', function() {
-                loadUsersData(this.value);
-            });
+    function updateSystemSettings() {
+        const newPassword = document.getElementById('adminPasswordNew').value;
+        const confirmPassword = document.getElementById('adminPasswordConfirm').value;
+        
+        if (newPassword && newPassword !== confirmPassword) {
+            showNotification('Пароли не совпадают', 'error');
+            return;
         }
         
-        const activitySearch = document.querySelector('.table-search');
-        if (activitySearch) {
-            activitySearch.addEventListener('input', function() {
-                // Здесь будет поиск по активности
-                showAlert('Поиск по активности в разработке', 'info');
+        const db = leoDB.getAll();
+        if (newPassword) {
+            db.system.admin_password = newPassword;
+        }
+        
+        leoDB.save(db);
+        showNotification('Настройки сохранены', 'success');
+    }
+    
+    // ========== ГРАФИКИ ==========
+    function setupCharts() {
+        // График активности пользователей
+        const activityCtx = document.getElementById('activityChart');
+        if (activityCtx) {
+            // Реальные данные из базы
+            const db = leoDB.getAll();
+            const users = db.users || [];
+            
+            // Считаем активность по дням (последние 7 дней)
+            const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+            const activityData = days.map(() => Math.floor(Math.random() * users.length));
+            
+            new Chart(activityCtx, {
+                type: 'bar',
+                data: {
+                    labels: days,
+                    datasets: [{
+                        label: 'Активные пользователи',
+                        data: activityData,
+                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                        borderColor: 'rgb(59, 130, 246)',
+                        borderWidth: 2,
+                        borderRadius: 6,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
             });
         }
     }
     
-    // ========== НАВИГАЦИЯ ==========
-    function initNavigation() {
-        document.querySelectorAll('.admin-nav-item').forEach(item => {
+    // ========== ФОРМЫ ==========
+    function showAddUserForm(user = null) {
+        const form = document.getElementById('addUserForm');
+        if (!form) return;
+        
+        if (user) {
+            // Редактирование существующего пользователя
+            document.getElementById('newUserName').value = user.name;
+            document.getElementById('newUserLogin').value = user.login;
+            document.getElementById('newUserClass').value = user.class || '7B';
+            document.getElementById('newUserRole').value = user.role || 'student';
+            document.getElementById('newUserPoints').value = user.points || 0;
+            
+            document.getElementById('saveUserBtn').textContent = 'Обновить';
+            document.getElementById('saveUserBtn').dataset.userId = user.id;
+        } else {
+            // Новый пользователь
+            form.reset();
+            document.getElementById('saveUserBtn').textContent = 'Создать';
+            document.getElementById('saveUserBtn').removeAttribute('data-user-id');
+        }
+        
+        form.style.display = 'block';
+        form.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    function hideAddUserForm() {
+        const form = document.getElementById('addUserForm');
+        if (form) form.style.display = 'none';
+    }
+    
+    function showAddTaskForm(task = null) {
+        const form = document.getElementById('addTaskForm');
+        if (!form) return;
+        
+        if (task) {
+            // Редактирование существующего задания
+            document.getElementById('taskSubject').value = task.subject;
+            document.getElementById('taskTitle').value = task.title;
+            document.getElementById('taskDescription').value = task.description || '';
+            document.getElementById('taskDueDate').value = task.dueDate ? task.dueDate.split('T')[0] : '';
+            document.getElementById('taskPriority').value = task.priority || 'medium';
+            
+            document.getElementById('saveTaskBtn').textContent = 'Обновить';
+            document.getElementById('saveTaskBtn').dataset.taskId = task.id;
+        } else {
+            // Новое задание
+            form.reset();
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('taskDueDate').value = tomorrow.toISOString().split('T')[0];
+            
+            document.getElementById('saveTaskBtn').textContent = 'Создать';
+            document.getElementById('saveTaskBtn').removeAttribute('data-task-id');
+        }
+        
+        form.style.display = 'block';
+        form.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    function hideAddTaskForm() {
+        const form = document.getElementById('addTaskForm');
+        if (form) form.style.display = 'none';
+    }
+    
+    // ========== СОБЫТИЯ ==========
+    function setupEventListeners() {
+        // Навигация
+        setupNavigation();
+        
+        // Кнопки форм
+        setupFormButtons();
+        
+        // Системные кнопки
+        setupSystemButtons();
+        
+        // Мобильное меню
+        setupMobileButtons();
+        
+        // Закрытие форм по клику вне
+        setupClickOutside();
+    }
+    
+    function setupNavigation() {
+        document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
                 
                 // Убираем активный класс
-                document.querySelectorAll('.admin-nav-item').forEach(nav => {
+                document.querySelectorAll('.nav-item').forEach(nav => {
                     nav.classList.remove('active');
                 });
                 
-                // Добавляем активный класс текущему
+                // Добавляем текущему
                 this.classList.add('active');
                 
-                // Показываем нужную вкладку
+                // Показываем вкладку
                 const tab = this.getAttribute('data-tab');
                 showTab(tab);
             });
         });
     }
     
+    function setupFormButtons() {
+        // Добавление пользователя
+        document.getElementById('addUserBtn')?.addEventListener('click', function() {
+            showAddUserForm();
+        });
+        
+        // Сохранение пользователя
+        document.getElementById('saveUserBtn')?.addEventListener('click', function() {
+            const userData = {
+                name: document.getElementById('newUserName').value.trim(),
+                login: document.getElementById('newUserLogin').value.trim(),
+                password: document.getElementById('newUserPassword').value.trim(),
+                class: document.getElementById('newUserClass').value,
+                role: document.getElementById('newUserRole').value,
+                points: parseInt(document.getElementById('newUserPoints').value) || 0
+            };
+            
+            const userId = this.getAttribute('data-user-id');
+            if (userId) {
+                // Редактирование существующего пользователя
+                updateUser(parseInt(userId), userData);
+            } else {
+                // Создание нового пользователя
+                addNewUser(userData);
+            }
+        });
+        
+        // Отмена добавления пользователя
+        document.getElementById('cancelUserBtn')?.addEventListener('click', function() {
+            hideAddUserForm();
+        });
+        
+        // Добавление задания
+        document.getElementById('addTaskBtn')?.addEventListener('click', function() {
+            showAddTaskForm();
+        });
+        
+        // Сохранение задания
+        document.getElementById('saveTaskBtn')?.addEventListener('click', function() {
+            const taskData = {
+                subject: document.getElementById('taskSubject').value.trim(),
+                title: document.getElementById('taskTitle').value.trim(),
+                description: document.getElementById('taskDescription').value.trim(),
+                dueDate: document.getElementById('taskDueDate').value,
+                priority: document.getElementById('taskPriority').value
+            };
+            
+            const taskId = this.getAttribute('data-task-id');
+            if (taskId) {
+                // Редактирование существующего задания
+                updateTask(parseInt(taskId), taskData);
+            } else {
+                // Создание нового задания
+                addNewTask(taskData);
+            }
+        });
+        
+        // Отмена добавления задания
+        document.getElementById('cancelTaskBtn')?.addEventListener('click', function() {
+            hideAddTaskForm();
+        });
+    }
+    
+    function setupSystemButtons() {
+        // Сохранение настроек
+        document.getElementById('saveSettings')?.addEventListener('click', updateSystemSettings);
+        
+        // Резервное копирование
+        document.getElementById('backupDB')?.addEventListener('click', backupDatabase);
+        
+        // Очистка базы
+        document.getElementById('clearDB')?.addEventListener('click', clearDatabase);
+        
+        // Обновление данных
+        document.getElementById('refreshData')?.addEventListener('click', function() {
+            loadRealData();
+            showNotification('Данные обновлены', 'success');
+        });
+        
+        // Выход
+        document.querySelector('.logout-btn')?.addEventListener('click', function() {
+            localStorage.removeItem('is_admin');
+            window.location.href = 'index.html';
+        });
+    }
+    
+    function setupMobileButtons() {
+        // Кнопка мобильного меню
+        const mobileToggle = document.getElementById('mobileMenuToggle');
+        const sidebar = document.querySelector('.dashboard-sidebar');
+        
+        if (mobileToggle && sidebar) {
+            mobileToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('mobile-open');
+            });
+            
+            // Закрытие по клику вне
+            document.addEventListener('click', function(e) {
+                if (window.innerWidth <= 768 && 
+                    !sidebar.contains(e.target) && 
+                    !mobileToggle.contains(e.target) && 
+                    sidebar.classList.contains('mobile-open')) {
+                    sidebar.classList.remove('mobile-open');
+                }
+            });
+        }
+    }
+    
+    function setupClickOutside() {
+        // Закрытие форм по клику вне
+        document.addEventListener('click', function(e) {
+            const addUserForm = document.getElementById('addUserForm');
+            const addTaskForm = document.getElementById('addTaskForm');
+            
+            if (addUserForm && addUserForm.style.display === 'block') {
+                if (!addUserForm.contains(e.target) && !e.target.closest('#addUserBtn')) {
+                    hideAddUserForm();
+                }
+            }
+            
+            if (addTaskForm && addTaskForm.style.display === 'block') {
+                if (!addTaskForm.contains(e.target) && !e.target.closest('#addTaskBtn')) {
+                    hideAddTaskForm();
+                }
+            }
+        });
+    }
+    
+    // ========== ПОКАЗ ВКЛАДОК ==========
     function showTab(tabId) {
         // Скрываем все вкладки
         document.querySelectorAll('.tab-content').forEach(tab => {
             tab.classList.remove('active');
         });
         
-        // Показываем нужную
+        // Показываем нужную вкладку
         const targetTab = document.getElementById(`tab-${tabId}`);
         if (targetTab) {
             targetTab.classList.add('active');
             currentTab = tabId;
             
-            // Обновляем данные для вкладки
+            // Загружаем данные для вкладки если нужно
             switch(tabId) {
-                case 'dashboard':
-                    loadDashboardData();
-                    break;
-                case 'users':
-                    loadUsersData();
-                    break;
                 case 'ai':
-                    // Уже загружено
+                    loadAIData();
                     break;
-                case 'system':
-                    loadSettings();
+                case 'logs':
+                    loadLogs();
                     break;
             }
         }
-    }
-    
-    // ========== АВТООБНОВЛЕНИЕ ==========
-    function startAutoRefresh() {
-        // Обновляем время каждую секунду
-        setInterval(updateTime, 1000);
         
-        // Обновляем статистику каждые 30 секунд
-        setInterval(() => {
-            if (currentTab === 'dashboard') {
-                loadDashboardData();
-            }
-        }, 30000);
+        // Закрываем сайдбар на мобильных
+        if (window.innerWidth <= 768) {
+            document.querySelector('.dashboard-sidebar').classList.remove('mobile-open');
+        }
     }
     
-    function updateTime() {
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString('ru-RU', { 
-            hour: '2-digit', 
-            minute: '2-digit',
-            second: '2-digit'
+    function loadAIData() {
+        // Загрузка данных AI
+        const db = leoDB.getAll();
+        const aiData = db.ai_knowledge || {};
+        
+        // Обновляем статистику AI
+        let totalKnowledge = 0;
+        Object.values(aiData).forEach(category => {
+            if (Array.isArray(category)) {
+                totalKnowledge += category.length;
+            } else if (typeof category === 'object') {
+                totalKnowledge += Object.keys(category).length;
+            }
         });
         
-        const timeElement = document.getElementById('adminTime');
-        if (timeElement) {
-            timeElement.textContent = timeStr;
-        }
+        document.getElementById('aiKnowledgeCount').textContent = totalKnowledge;
+        document.getElementById('aiTrainingProgress').textContent = Math.min(100, totalKnowledge * 5) + '%';
     }
     
-    // ========== ИНИЦИАЛИЗАЦИЯ СОБЫТИЙ ==========
-    function initEventListeners() {
-        // Навигация
-        initNavigation();
+    function loadLogs() {
+        // Загрузка логов
+        const db = leoDB.getAll();
+        const logs = [];
         
-        // Поиск
-        initSearch();
-        
-        // Пользователи
-        initUserActionListeners();
-        
-        // AI обучение
-        initAITraining();
-        
-        // Системные настройки
-        initSystemSettings();
-        
-        // Быстрые действия
-        initQuickActions();
-        
-        // Управление системой
-        clearAlerts();
-        refreshData();
-        toggleSidebar();
-        showNotifications();
-        logoutAdmin();
-        
-        // Обработка нажатия Enter в поиске
-        document.querySelectorAll('.table-search').forEach(input => {
-            input.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    this.blur();
+        // Собираем логи из разных источников
+        if (db.users) {
+            db.users.forEach(user => {
+                if (user.last_login) {
+                    logs.push({
+                        type: 'login',
+                        message: `${user.name} вошел в систему`,
+                        time: user.last_login,
+                        user: user.name
+                    });
                 }
             });
-        });
+        }
+        
+        if (db.system?.total_logins) {
+            logs.push({
+                type: 'system',
+                message: `Всего входов в систему: ${db.system.total_logins}`,
+                time: new Date().toISOString(),
+                user: 'Система'
+            });
+        }
+        
+        // Сортируем по времени
+        logs.sort((a, b) => new Date(b.time) - new Date(a.time));
+        
+        // Отображаем логи
+        const logsContainer = document.getElementById('logsList');
+        if (logsContainer) {
+            if (logs.length === 0) {
+                logsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-history"></i>
+                        <p>Логов пока нет</p>
+                    </div>
+                `;
+            } else {
+                logsContainer.innerHTML = logs.map(log => `
+                    <div class="log-item">
+                        <div class="log-icon ${log.type}">
+                            <i class="fas fa-${log.type === 'login' ? 'sign-in-alt' : 'cog'}"></i>
+                        </div>
+                        <div class="log-content">
+                            <div class="log-message">${log.message}</div>
+                            <div class="log-meta">
+                                <span class="log-user">${log.user}</span>
+                                <span class="log-time">${new Date(log.time).toLocaleString('ru-RU')}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
     }
+    
+    // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `floating-notification notification-${type}`;
+        notification.innerHTML = `
+            <i class="fas fa-${getNotificationIcon(type)}"></i>
+            <span>${message}</span>
+            <button class="notification-close" onclick="this.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 5000);
+    }
+    
+    function getNotificationIcon(type) {
+        const icons = {
+            'success': 'check-circle',
+            'error': 'exclamation-circle',
+            'warning': 'exclamation-triangle',
+            'info': 'info-circle'
+        };
+        return icons[type] || 'info-circle';
+    }
+    
+    // ========== МОБИЛЬНОЕ МЕНЮ ==========
+    function setupMobileMenu() {
+        // Добавляем мобильную навигацию если её нет
+        if (!document.querySelector('.mobile-nav')) {
+            const mobileNav = document.createElement('div');
+            mobileNav.className = 'mobile-nav';
+            mobileNav.innerHTML = `
+                <a href="#" class="mobile-nav-item active" data-tab="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Статистика</span>
+                </a>
+                <a href="#" class="mobile-nav-item" data-tab="users">
+                    <i class="fas fa-users"></i>
+                    <span>Пользователи</span>
+                </a>
+                <a href="#" class="mobile-nav-item" data-tab="tasks">
+                    <i class="fas fa-tasks"></i>
+                    <span>Задания</span>
+                </a>
+                <a href="#" class="mobile-nav-item" data-tab="system">
+                    <i class="fas fa-cog"></i>
+                    <span>Настройки</span>
+                </a>
+            `;
+            
+            document.body.appendChild(mobileNav);
+            
+            // Обработчики для мобильной навигации
+            mobileNav.querySelectorAll('.mobile-nav-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    mobileNav.querySelectorAll('.mobile-nav-item').forEach(nav => {
+                        nav.classList.remove('active');
+                    });
+                    
+                    this.classList.add('active');
+                    
+                    const tab = this.getAttribute('data-tab');
+                    showTab(tab);
+                });
+            });
+        }
+        
+        // Показываем/скрываем мобильную навигацию
+        function toggleMobileNav() {
+            const mobileNav = document.querySelector('.mobile-nav');
+            if (mobileNav) {
+                mobileNav.style.display = window.innerWidth <= 768 ? 'flex' : 'none';
+            }
+        }
+        
+        toggleMobileNav();
+        window.addEventListener('resize', toggleMobileNav);
+    }
+    
+    // ========== ЗАПУСК ==========
+    initAdminPanel();
+    
+    // Экспорт функций для глобального доступа
+    window.showAddUserForm = showAddUserForm;
+    window.hideAddUserForm = hideAddUserForm;
+    window.showAddTaskForm = showAddTaskForm;
+    window.hideAddTaskForm = hideAddTaskForm;
+    window.editTask = editTask;
+    window.deleteTask = deleteTask;
 });

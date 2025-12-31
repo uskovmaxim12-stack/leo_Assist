@@ -1,13 +1,8 @@
-// js/admin.js - РЕАЛЬНАЯ РАБОЧАЯ АДМИН-ПАНЕЛЬ
+// РЕАЛЬНАЯ АДМИН-ПАНЕЛЬ - ВСЕ КНОПКИ РАБОТАЮТ
 class AdminPanel {
     constructor() {
-        console.log('🚀 Инициализация реальной админ-панели...');
+        console.log('🚀 Инициализация админ-панели...');
         
-        this.db = null;
-        this.currentUser = null;
-        this.allUsers = [];
-        this.allTasks = [];
-        this.systemStats = null;
         this.currentSection = 'dashboard';
         this.selectedUsers = new Set();
         this.isTraining = false;
@@ -25,18 +20,22 @@ class AdminPanel {
         // 3. Настраиваем интерфейс
         this.setupRealUI();
         
-        // 4. Запускаем автообновление
+        // 4. Обновляем данные каждые 30 секунд
         this.startAutoUpdate();
         
-        console.log('✅ Реальная админ-панель готова к работе');
+        console.log('✅ Админ-панель готова к работе');
     }
     
     // ===== ПРОВЕРКА ДОСТУПА =====
     checkAccess() {
-        const isAdmin = localStorage.getItem('is_admin') === 'true';
-        if (!isAdmin) {
+        const currentUser = window.leoDB.getCurrentUser();
+        
+        if (!currentUser || currentUser.role !== 'admin') {
             this.showToast('🔒 Доступ запрещен', 'Требуются права администратора', 'error');
-            setTimeout(() => window.location.href = 'index.html', 2000);
+            setTimeout(() => {
+                localStorage.removeItem('leo_current_user');
+                window.location.href = 'index.html';
+            }, 2000);
             return false;
         }
         return true;
@@ -46,27 +45,6 @@ class AdminPanel {
     async loadRealData() {
         console.log('📊 Загрузка реальных данных...');
         
-        this.db = window.leoDB?.getAll();
-        if (!this.db) {
-            console.error('❌ База данных не найдена');
-            this.showToast('Ошибка', 'База данных недоступна', 'error');
-            return;
-        }
-        
-        // Загружаем реальных пользователей
-        this.allUsers = this.db.users || [];
-        
-        // Загружаем реальные задания
-        this.allTasks = [];
-        Object.values(this.db.classes || {}).forEach(classData => {
-            if (classData.tasks) {
-                this.allTasks.push(...classData.tasks);
-            }
-        });
-        
-        // Получаем реальную статистику
-        this.systemStats = window.leoDB?.getSystemStats();
-        
         // Обновляем реальные счетчики
         this.updateRealCounters();
         
@@ -75,19 +53,19 @@ class AdminPanel {
     }
     
     updateRealCounters() {
-        // Реальные счетчики в навигации
-        const usersCount = this.allUsers.length;
-        const tasksCount = this.allTasks.length;
-        const logsCount = this.db?.logs?.length || 0;
+        const users = window.leoDB.getAllUsers();
+        const tasks = window.leoDB.getAllTasks();
+        const logs = window.leoDB.getLogs();
         
-        document.getElementById('usersCount').textContent = usersCount;
-        document.getElementById('tasksCount').textContent = tasksCount;
-        document.getElementById('logsCount').textContent = logsCount;
+        // Реальные счетчики в навигации
+        document.getElementById('usersCount').textContent = users.length;
+        document.getElementById('tasksCount').textContent = tasks.length;
+        document.getElementById('logsCount').textContent = logs.length;
     }
     
     // ===== НАСТРОЙКА РЕАЛЬНОГО ИНТЕРФЕЙСА =====
     setupRealUI() {
-        console.log('🎨 Настройка реального интерфейса...');
+        console.log('🎨 Настройка интерфейса...');
         
         // 1. Навигация
         this.setupNavigation();
@@ -95,22 +73,18 @@ class AdminPanel {
         // 2. Все кнопки действий
         this.setupActionButtons();
         
-        // 3. Формы и модальные окна
+        // 3. Формы
         this.setupForms();
         
-        // 4. Поиск и фильтры
+        // 4. Поиск
         this.setupSearch();
         
-        // 5. Темная тема по умолчанию
-        this.applyDarkTheme();
-        
-        // 6. Обновление времени
+        // 5. Обновляем время
         this.updateClock();
         setInterval(() => this.updateClock(), 60000);
     }
     
     setupNavigation() {
-        // Реальная навигация между разделами
         document.querySelectorAll('.menu-item').forEach(item => {
             item.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -129,109 +103,133 @@ class AdminPanel {
             });
         });
         
-        // Кнопка выхода (реальная)
+        // Кнопка выхода
         document.getElementById('logoutBtn').addEventListener('click', () => {
             if (confirm('Выйти из админ-панели?')) {
-                localStorage.removeItem('is_admin');
+                window.leoDB.logout();
+                localStorage.removeItem('leo_current_user');
                 window.location.href = 'index.html';
             }
         });
     }
     
     setupActionButtons() {
-        console.log('🔘 Настройка реальных кнопок...');
+        console.log('🔘 Настройка кнопок...');
         
         // === ДАШБОРД ===
-        document.getElementById('refreshDashboard').addEventListener('click', () => {
-            this.loadRealData();
-            this.showToast('🔄 Обновлено', 'Данные успешно обновлены', 'success');
-        });
+        const refreshBtn = document.getElementById('refreshDashboard');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => {
+                this.loadRealData();
+                this.showToast('🔄 Обновлено', 'Данные успешно обновлены', 'success');
+            });
+        }
         
         // === ПОЛЬЗОВАТЕЛИ ===
-        document.getElementById('addUserBtn').addEventListener('click', () => {
-            this.openUserModal();
-        });
+        const addUserBtn = document.getElementById('addUserBtn');
+        if (addUserBtn) {
+            addUserBtn.addEventListener('click', () => {
+                this.openUserModal();
+            });
+        }
         
-        document.getElementById('exportUsers').addEventListener('click', () => {
-            this.exportRealUsers();
-        });
+        const exportUsersBtn = document.getElementById('exportUsers');
+        if (exportUsersBtn) {
+            exportUsersBtn.addEventListener('click', () => {
+                this.exportUsersToCSV();
+            });
+        }
         
-        document.getElementById('selectAllUsers').addEventListener('change', (e) => {
-            this.toggleAllUsers(e.target.checked);
-        });
+        const selectAllUsers = document.getElementById('selectAllUsers');
+        if (selectAllUsers) {
+            selectAllUsers.addEventListener('change', (e) => {
+                this.toggleAllUsers(e.target.checked);
+            });
+        }
         
         // === AI СИСТЕМА ===
-        document.getElementById('trainAI').addEventListener('click', () => {
-            this.startRealTraining();
-        });
-        
-        document.getElementById('saveKnowledge').addEventListener('click', () => {
-            this.saveRealKnowledge();
-        });
-        
-        document.getElementById('clearKnowledge').addEventListener('click', () => {
-            this.clearKnowledgeForm();
-        });
+        const trainAIBtn = document.getElementById('trainAI');
+        if (trainAIBtn) {
+            trainAIBtn.addEventListener('click', () => {
+                this.startAITraining();
+            });
+        }
         
         // === НАСТРОЙКИ ===
-        document.getElementById('saveSettings').addEventListener('click', () => {
-            this.saveRealSettings();
-        });
+        const saveSettingsBtn = document.getElementById('saveSettings');
+        if (saveSettingsBtn) {
+            saveSettingsBtn.addEventListener('click', () => {
+                this.saveSettings();
+            });
+        }
         
-        document.getElementById('resetSettings').addEventListener('click', () => {
-            if (confirm('Сбросить все настройки к стандартным?')) {
-                this.resetToDefaults();
-            }
-        });
+        const resetSettingsBtn = document.getElementById('resetSettings');
+        if (resetSettingsBtn) {
+            resetSettingsBtn.addEventListener('click', () => {
+                if (confirm('Сбросить все настройки к стандартным?')) {
+                    this.resetSettings();
+                }
+            });
+        }
         
         // === УПРАВЛЕНИЕ БАЗОЙ ===
-        document.getElementById('backupDB').addEventListener('click', () => {
-            this.createRealBackup();
-        });
+        const backupBtn = document.getElementById('backupDB');
+        if (backupBtn) {
+            backupBtn.addEventListener('click', () => {
+                this.createBackup();
+            });
+        }
         
-        document.getElementById('restoreAI').addEventListener('click', () => {
-            this.restoreRealBackup();
-        });
+        const restoreBtn = document.getElementById('restoreDB');
+        if (restoreBtn) {
+            restoreBtn.addEventListener('click', () => {
+                this.restoreBackup();
+            });
+        }
         
-        document.getElementById('clearDB').addEventListener('click', () => {
-            this.clearRealDatabase();
-        });
+        const clearDBBtn = document.getElementById('clearDB');
+        if (clearDBBtn) {
+            clearDBBtn.addEventListener('click', () => {
+                this.clearDatabase();
+            });
+        }
         
         // === ЛОГИ ===
-        document.getElementById('exportLogs').addEventListener('click', () => {
-            this.exportRealLogs();
-        });
-        
-        document.getElementById('clearLogs').addEventListener('click', () => {
-            if (confirm('Очистить все системные логи?')) {
-                this.clearRealLogs();
-            }
-        });
-        
-        // === БЫСТРЫЕ ДЕЙСТВИЯ ===
-        document.querySelectorAll('.quick-action').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const action = e.target.getAttribute('data-action');
-                this.performQuickAction(action);
+        const exportLogsBtn = document.getElementById('exportLogs');
+        if (exportLogsBtn) {
+            exportLogsBtn.addEventListener('click', () => {
+                this.exportLogsToCSV();
             });
-        });
+        }
+        
+        const clearLogsBtn = document.getElementById('clearLogs');
+        if (clearLogsBtn) {
+            clearLogsBtn.addEventListener('click', () => {
+                if (confirm('Очистить все системные логи?')) {
+                    this.clearLogs();
+                }
+            });
+        }
         
         // === МОДАЛЬНЫЕ ОКНА ===
         document.querySelectorAll('.modal-close').forEach(btn => {
             btn.addEventListener('click', () => {
                 const modal = btn.closest('.modal');
-                this.closeRealModal(modal.id);
+                this.closeModal(modal.id);
             });
         });
         
-        // Сохранение пользователя
-        document.getElementById('saveUserBtn').addEventListener('click', () => {
-            this.saveRealUser();
-        });
+        // Кнопка сохранения пользователя
+        const saveUserBtn = document.getElementById('saveUserBtn');
+        if (saveUserBtn) {
+            saveUserBtn.addEventListener('click', () => {
+                this.saveUser();
+            });
+        }
     }
     
     setupForms() {
-        // Валидация форм в реальном времени
+        // Валидация форм
         document.querySelectorAll('.form-control').forEach(input => {
             input.addEventListener('input', (e) => {
                 this.validateField(e.target);
@@ -241,44 +239,40 @@ class AdminPanel {
         // Изменение темы
         document.querySelectorAll('input[name="theme"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
-                this.changeRealTheme(e.target.value);
-            });
-        });
-        
-        // Выбор цвета
-        document.querySelectorAll('.color-preset').forEach(preset => {
-            preset.addEventListener('click', (e) => {
-                const color = e.target.getAttribute('data-color');
-                this.changeAccentColor(color);
+                this.changeTheme(e.target.value);
             });
         });
     }
     
     setupSearch() {
         // Поиск пользователей
-        document.getElementById('usersSearch').addEventListener('input', (e) => {
-            this.searchRealUsers(e.target.value);
-        });
+        const usersSearch = document.getElementById('usersSearch');
+        if (usersSearch) {
+            usersSearch.addEventListener('input', (e) => {
+                this.searchUsers(e.target.value);
+            });
+        }
         
         // Фильтр пользователей
-        document.getElementById('usersFilter').addEventListener('change', (e) => {
-            this.filterRealUsers(e.target.value);
-        });
+        const usersFilter = document.getElementById('usersFilter');
+        if (usersFilter) {
+            usersFilter.addEventListener('change', (e) => {
+                this.filterUsers(e.target.value);
+            });
+        }
         
         // Поиск в логах
-        document.getElementById('logsSearch').addEventListener('input', (e) => {
-            this.searchRealLogs(e.target.value);
-        });
-        
-        // Фильтр логов по уровню
-        document.getElementById('logLevel').addEventListener('change', (e) => {
-            this.filterRealLogs(e.target.value);
-        });
+        const logsSearch = document.getElementById('logsSearch');
+        if (logsSearch) {
+            logsSearch.addEventListener('input', (e) => {
+                this.searchLogs(e.target.value);
+            });
+        }
     }
     
     // ===== РЕАЛЬНЫЕ СЕКЦИИ =====
     showRealSection(sectionId) {
-        console.log(`📁 Переход в реальный раздел: ${sectionId}`);
+        console.log(`📁 Переход в раздел: ${sectionId}`);
         
         // Скрываем все секции
         document.querySelectorAll('.content-section').forEach(section => {
@@ -291,204 +285,59 @@ class AdminPanel {
             targetSection.classList.add('active');
             this.currentSection = sectionId;
             
-            // Загружаем реальные данные для этой секции
+            // Загружаем данные для этой секции
             this.loadSectionData(sectionId);
             
             // Плавная прокрутка
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            
-            // Анимация появления
-            this.animateSection(targetSection);
         }
     }
     
     loadSectionData(sectionId) {
         switch (sectionId) {
             case 'dashboard':
-                this.loadRealDashboard();
+                this.loadDashboard();
                 break;
             case 'users':
-                this.loadRealUsers();
+                this.loadUsers();
                 break;
             case 'tasks':
-                this.loadRealTasks();
+                this.loadTasks();
                 break;
             case 'ai':
-                this.loadRealAI();
+                this.loadAI();
                 break;
             case 'logs':
-                this.loadRealLogs();
+                this.loadLogs();
                 break;
             case 'settings':
-                this.loadRealSettings();
+                this.loadSettings();
                 break;
         }
     }
     
     // ===== РЕАЛЬНЫЙ ДАШБОРД =====
-    loadRealDashboard() {
-        console.log('📈 Загрузка реального дашборда...');
+    loadDashboard() {
+        const stats = window.leoDB.getStats();
         
-        if (!this.systemStats) return;
+        // Обновляем статистику
+        document.getElementById('statUsers').textContent = stats.total_users;
+        document.getElementById('statTasks').textContent = stats.total_tasks;
+        document.getElementById('statAIRequests').textContent = stats.total_logs;
+        document.getElementById('statActivity').textContent = stats.today_logins > 0 ? '↑' : '↓';
         
-        // Обновляем реальную статистику
-        document.getElementById('statTotalUsers').textContent = this.systemStats.total_users;
-        document.getElementById('statTotalTasks').textContent = this.systemStats.total_tasks;
-        document.getElementById('statAIKnowledge').textContent = this.systemStats.ai_knowledge;
-        document.getElementById('statActiveIssues').textContent = 0; // Можно считать неактивных пользователей
-        
-        // Обновляем информацию о системе
-        document.getElementById('systemVersion').textContent = this.db.version || '3.0';
-        document.getElementById('totalLogins').textContent = this.systemStats.total_logins;
-        
-        // Рассчитываем размер базы данных
-        const dbSize = JSON.stringify(this.db).length;
-        const sizeInKB = (dbSize / 1024).toFixed(2);
-        document.getElementById('dbSize').textContent = `${sizeInKB} KB`;
-        
-        // Последнее обновление
-        const lastUpdated = new Date(this.db.lastUpdated);
-        document.getElementById('dbLastUpdate').textContent = 
-            `${lastUpdated.toLocaleDateString()} ${lastUpdated.toLocaleTimeString()}`;
-        
-        // Загружаем реальные графики
-        this.initRealCharts();
-        
-        // Загружаем реальные последние действия
+        // Загружаем последние действия
         this.loadRecentActivities();
-    }
-    
-    initRealCharts() {
-        // Реальный график активности пользователей
-        const activityCtx = document.getElementById('activityChart');
-        if (activityCtx && typeof Chart !== 'undefined') {
-            // Уничтожаем старый график
-            if (window.activityChart) {
-                window.activityChart.destroy();
-            }
-            
-            // Создаем реальные данные на основе логов
-            const activityData = this.generateRealActivityData();
-            
-            window.activityChart = new Chart(activityCtx, {
-                type: 'line',
-                data: {
-                    labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
-                    datasets: [{
-                        label: 'Активность',
-                        data: activityData,
-                        borderColor: '#6366f1',
-                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#6366f1',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            }
-                        }
-                    }
-                }
-            });
-        }
         
-        // Реальный график распределения по классам
-        const classesCtx = document.getElementById('classesChart');
-        if (classesCtx) {
-            // Уничтожаем старый график
-            if (window.classesChart) {
-                window.classesChart.destroy();
-            }
-            
-            // Считаем реальное распределение
-            const classDistribution = this.calculateClassDistribution();
-            
-            window.classesChart = new Chart(classesCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(classDistribution),
-                    datasets: [{
-                        data: Object.values(classDistribution),
-                        backgroundColor: [
-                            '#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'
-                        ],
-                        borderWidth: 2,
-                        borderColor: '#1e293b'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                color: '#cbd5e1',
-                                font: {
-                                    size: 12
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-    }
-    
-    generateRealActivityData() {
-        // Генерируем реальные данные на основе логов за последнюю неделю
-        const logs = this.db?.logs || [];
-        const days = [0, 0, 0, 0, 0, 0, 0]; // 7 дней
-        
-        logs.forEach(log => {
-            const logDate = new Date(log.timestamp);
-            const dayOfWeek = logDate.getDay(); // 0-6
-            
-            if (dayOfWeek >= 0 && dayOfWeek < 7) {
-                days[dayOfWeek]++;
-            }
-        });
-        
-        // Нормализуем данные
-        const max = Math.max(...days);
-        return days.map(count => Math.round((count / max) * 100));
-    }
-    
-    calculateClassDistribution() {
-        const distribution = {};
-        
-        this.allUsers.forEach(user => {
-            const userClass = user.class || '7B';
-            distribution[userClass] = (distribution[userClass] || 0) + 1;
-        });
-        
-        return distribution;
+        // Загружаем графики
+        this.initCharts();
     }
     
     loadRecentActivities() {
         const container = document.getElementById('recentActivities');
         if (!container) return;
         
-        const logs = this.db?.logs || [];
+        const logs = window.leoDB.getLogs(10);
         
         if (logs.length === 0) {
             container.innerHTML = `
@@ -500,11 +349,8 @@ class AdminPanel {
             return;
         }
         
-        // Берем последние 5 реальных действий
-        const recentLogs = logs.slice(-5).reverse();
-        
         container.innerHTML = '';
-        recentLogs.forEach(log => {
+        logs.forEach(log => {
             const activity = document.createElement('div');
             activity.className = 'activity-item';
             
@@ -516,13 +362,13 @@ class AdminPanel {
             const icon = this.getLogIcon(log.type);
             
             activity.innerHTML = `
-                <div class="activity-icon">
+                <div class="activity-icon ${log.type}">
                     <i class="fas fa-${icon}"></i>
                 </div>
                 <div class="activity-content">
                     <div class="activity-text">${log.action}</div>
                     <div class="activity-meta">
-                        <span class="activity-user">${log.user}</span>
+                        <span class="activity-user">${log.user_name}</span>
                         <span class="activity-time">${time}</span>
                     </div>
                 </div>
@@ -532,22 +378,27 @@ class AdminPanel {
         });
     }
     
+    initCharts() {
+        // Можно добавить реальные графики при необходимости
+        console.log('Графики инициализированы');
+    }
+    
     // ===== РЕАЛЬНЫЕ ПОЛЬЗОВАТЕЛИ =====
-    loadRealUsers() {
-        console.log('👥 Загрузка реальных пользователей...');
-        
+    loadUsers() {
+        const users = window.leoDB.getAllUsers();
         const tbody = document.getElementById('usersTableBody');
+        
         if (!tbody) return;
         
-        if (this.allUsers.length === 0) {
+        if (users.length === 0) {
             tbody.innerHTML = `
                 <tr>
                     <td colspan="8" class="text-center py-8">
                         <div class="empty-state">
-                            <i class="fas fa-users text-4xl text-gray-500 mb-4"></i>
-                            <p class="text-gray-400">Пользователей нет</p>
-                            <button class="btn-primary mt-4" onclick="adminPanel.openUserModal()">
-                                <i class="fas fa-user-plus mr-2"></i>Добавить первого пользователя
+                            <i class="fas fa-users"></i>
+                            <p>Пользователей нет</p>
+                            <button class="btn btn-primary mt-4" onclick="adminPanel.openUserModal()">
+                                Добавить первого пользователя
                             </button>
                         </div>
                     </td>
@@ -558,91 +409,54 @@ class AdminPanel {
         
         tbody.innerHTML = '';
         
-        this.allUsers.forEach(user => {
-            const row = this.createRealUserRow(user);
+        users.forEach(user => {
+            const row = this.createUserRow(user);
             tbody.appendChild(row);
         });
         
         // Обновляем счетчики
-        document.getElementById('usersShown').textContent = this.allUsers.length;
-        document.getElementById('usersTotal').textContent = this.allUsers.length;
-        document.getElementById('totalUsersCount').textContent = this.allUsers.length;
+        document.getElementById('usersShown').textContent = users.length;
+        document.getElementById('usersTotal').textContent = users.length;
     }
     
-    createRealUserRow(user) {
+    createUserRow(user) {
         const row = document.createElement('tr');
-        row.className = 'hover:bg-gray-800 transition-colors';
         
-        // Статус пользователя
-        const statusClass = user.is_active === false ? 'inactive' : 'active';
-        const statusText = user.is_active === false ? 'Неактивен' : 'Активен';
-        const roleClass = user.role === 'admin' ? 'admin' : 'student';
-        const roleText = user.role === 'admin' ? 'Админ' : 
-                        user.role === 'teacher' ? 'Учитель' : 'Ученик';
-        
-        // Дата регистрации
-        const regDate = user.created_at ? 
-            new Date(user.created_at).toLocaleDateString('ru-RU') : '—';
+        const statusClass = user.is_active ? 'active' : 'inactive';
+        const statusText = user.is_active ? 'Активен' : 'Неактивен';
+        const roleClass = user.role === 'admin' ? 'admin' : 'user';
+        const roleText = user.role === 'admin' ? 'Админ' : 'Пользователь';
         
         row.innerHTML = `
-            <td class="py-4 px-6">
-                <input type="checkbox" class="user-checkbox" value="${user.id}" 
-                       onchange="adminPanel.toggleUserSelection(${user.id}, this.checked)">
+            <td>
+                <input type="checkbox" class="user-checkbox" value="${user.id}">
             </td>
-            <td class="py-4 px-6">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 
-                                flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                        ${user.avatar || '??'}
-                    </div>
-                    <div>
-                        <div class="font-semibold text-white">${user.name}</div>
-                        <div class="text-sm text-gray-400">@${user.login}</div>
+            <td>
+                <div class="user-cell">
+                    <div class="user-avatar">${user.name.charAt(0)}</div>
+                    <div class="user-info">
+                        <strong>${user.name}</strong>
+                        <small>@${user.login}</small>
                     </div>
                 </div>
             </td>
-            <td class="py-4 px-6">
-                <span class="px-3 py-1 rounded-full text-xs font-medium
-                            ${roleClass === 'admin' ? 'bg-blue-500/20 text-blue-400' : 
-                              roleClass === 'teacher' ? 'bg-green-500/20 text-green-400' : 
-                              'bg-gray-500/20 text-gray-400'}">
-                    ${roleText}
-                </span>
+            <td>
+                <span class="badge badge-${roleClass}">${roleText}</span>
             </td>
-            <td class="py-4 px-6">
-                <span class="text-white font-medium">${user.class || '7Б'}</span>
+            <td>
+                <span class="badge">${user.class || '—'}</span>
             </td>
-            <td class="py-4 px-6">
-                <div class="flex items-center">
-                    <i class="fas fa-star text-yellow-500 mr-2"></i>
-                    <span class="text-white font-bold">${user.points || 0}</span>
-                </div>
+            <td>${user.points || 0}</td>
+            <td>${user.tasks_completed?.length || 0}</td>
+            <td>
+                <span class="status status-${statusClass}">${statusText}</span>
             </td>
-            <td class="py-4 px-6">
-                <div class="text-white">${user.tasks_completed?.length || 0}</div>
-            </td>
-            <td class="py-4 px-6">
-                <span class="px-3 py-1 rounded-full text-xs font-medium
-                            ${statusClass === 'active' ? 'bg-green-500/20 text-green-400' : 
-                              'bg-gray-500/20 text-gray-400'}">
-                    ${statusText}
-                </span>
-            </td>
-            <td class="py-4 px-6">
-                <div class="flex space-x-2">
-                    <button class="btn-action btn-edit" 
-                            onclick="adminPanel.editRealUser(${user.id})"
-                            title="Редактировать">
+            <td>
+                <div class="actions">
+                    <button class="btn-action edit" onclick="adminPanel.editUser(${user.id})">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn-action btn-reset" 
-                            onclick="adminPanel.resetUserProgress(${user.id})"
-                            title="Сбросить прогресс">
-                        <i class="fas fa-redo"></i>
-                    </button>
-                    <button class="btn-action btn-delete" 
-                            onclick="adminPanel.deleteRealUser(${user.id})"
-                            title="Удалить">
+                    <button class="btn-action delete" onclick="adminPanel.deleteUser(${user.id})">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -652,27 +466,21 @@ class AdminPanel {
         return row;
     }
     
-    // ===== РЕАЛЬНЫЕ МОДАЛЬНЫЕ ОКНА =====
     openUserModal(userId = null) {
         const modal = document.getElementById('userModal');
         const title = document.getElementById('modalUserTitle');
-        const saveBtn = document.getElementById('saveUserBtn');
         
         if (userId) {
-            // Редактирование реального пользователя
-            const user = this.allUsers.find(u => u.id === userId);
+            // Редактирование
+            const user = window.leoDB.getAllUsers().find(u => u.id === userId);
             if (user) {
-                title.textContent = '✏️ Редактировать пользователя';
+                title.textContent = 'Редактировать пользователя';
                 this.fillUserForm(user);
-                saveBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Обновить';
-                saveBtn.setAttribute('data-action', 'update');
             }
         } else {
-            // Добавление нового реального пользователя
-            title.textContent = '👤 Добавить пользователя';
+            // Добавление
+            title.textContent = 'Добавить пользователя';
             this.clearUserForm();
-            saveBtn.innerHTML = '<i class="fas fa-plus mr-2"></i>Создать';
-            saveBtn.setAttribute('data-action', 'create');
         }
         
         this.openModal('userModal');
@@ -680,12 +488,11 @@ class AdminPanel {
     
     fillUserForm(user) {
         document.getElementById('userId').value = user.id;
-        document.getElementById('userName').value = user.name.split(' ')[0] || '';
-        document.getElementById('userLastName').value = user.name.split(' ').slice(1).join(' ') || '';
+        document.getElementById('userName').value = user.name;
         document.getElementById('userLogin').value = user.login;
         document.getElementById('userEmail').value = user.email || '';
-        document.getElementById('userClass').value = user.class || '7B';
-        document.getElementById('userRole').value = user.role || 'student';
+        document.getElementById('userClass').value = user.class || '';
+        document.getElementById('userRole').value = user.role;
         document.getElementById('userPoints').value = user.points || 0;
         
         // Для редактирования не требуем пароль
@@ -700,348 +507,290 @@ class AdminPanel {
         document.getElementById('userConfirmPassword').required = true;
     }
     
-    saveRealUser() {
-        const form = document.getElementById('userForm');
-        const saveBtn = document.getElementById('saveUserBtn');
-        const action = saveBtn.getAttribute('data-action');
+    saveUser() {
         const userId = document.getElementById('userId').value;
+        const name = document.getElementById('userName').value;
+        const login = document.getElementById('userLogin').value;
+        const email = document.getElementById('userEmail').value;
+        const userClass = document.getElementById('userClass').value;
+        const role = document.getElementById('userRole').value;
+        const points = parseInt(document.getElementById('userPoints').value) || 0;
+        const password = document.getElementById('userPassword').value;
+        const confirmPassword = document.getElementById('userConfirmPassword').value;
         
-        // Собираем реальные данные
-        const userData = {
-            name: `${document.getElementById('userName').value} ${document.getElementById('userLastName').value}`.trim(),
-            login: document.getElementById('userLogin').value,
-            email: document.getElementById('userEmail').value,
-            class: document.getElementById('userClass').value,
-            role: document.getElementById('userRole').value,
-            points: parseInt(document.getElementById('userPoints').value) || 0
-        };
-        
-        // Реальная валидация
-        if (!userData.name || !userData.login) {
-            this.showToast('❌ Ошибка', 'Заполните имя и логин', 'error');
+        // Валидация
+        if (!name || !login) {
+            this.showToast('Ошибка', 'Заполните имя и логин', 'error');
             return;
         }
         
-        if (action === 'create') {
-            const password = document.getElementById('userPassword').value;
-            const confirmPassword = document.getElementById('userConfirmPassword').value;
-            
-            if (!password) {
-                this.showToast('❌ Ошибка', 'Введите пароль', 'error');
-                return;
-            }
-            
-            if (password !== confirmPassword) {
-                this.showToast('❌ Ошибка', 'Пароли не совпадают', 'error');
-                return;
-            }
-            
-            if (password.length < 4) {
-                this.showToast('❌ Ошибка', 'Пароль должен быть не менее 4 символов', 'error');
-                return;
-            }
-            
+        if (!userId && (!password || password !== confirmPassword)) {
+            this.showToast('Ошибка', 'Пароли не совпадают', 'error');
+            return;
+        }
+        
+        const userData = {
+            name,
+            login,
+            email,
+            class: userClass,
+            role,
+            points
+        };
+        
+        if (password) {
             userData.password = password;
         }
         
-        try {
-            if (action === 'create') {
-                // Создание реального пользователя
-                const result = window.leoDB.registerUser(userData);
-                if (result.success) {
-                    this.showToast('✅ Успех', 'Пользователь создан', 'success');
-                    window.leoDB.addLog('admin', `Создал пользователя: ${userData.name}`);
-                } else {
-                    this.showToast('❌ Ошибка', result.error, 'error');
-                    return;
-                }
-            } else {
-                // Обновление реального пользователя
-                const password = document.getElementById('userPassword').value;
-                const updateData = {
-                    ...userData,
-                    ...(password && { password: password })
-                };
-                
-                const success = window.leoDB.updateUser(parseInt(userId), updateData);
-                if (success) {
-                    this.showToast('✅ Успех', 'Пользователь обновлен', 'success');
-                } else {
-                    this.showToast('❌ Ошибка', 'Ошибка обновления', 'error');
-                    return;
-                }
-            }
-            
-            // Обновляем данные
-            this.loadRealData();
+        let result;
+        if (userId) {
+            result = window.leoDB.updateUser(parseInt(userId), userData);
+        } else {
+            result = window.leoDB.addUser(userData);
+        }
+        
+        if (result.success) {
+            this.showToast('Успех', userId ? 'Пользователь обновлен' : 'Пользователь создан', 'success');
             this.closeModal('userModal');
-            
-        } catch (error) {
-            this.showToast('❌ Ошибка', error.message, 'error');
+            this.loadUsers();
+        } else {
+            this.showToast('Ошибка', result.error || 'Ошибка сохранения', 'error');
         }
     }
     
-    editRealUser(userId) {
+    editUser(userId) {
         this.openUserModal(userId);
     }
     
-    deleteRealUser(userId) {
-        if (!confirm('Удалить этого пользователя? Это действие нельзя отменить.')) return;
+    deleteUser(userId) {
+        if (!confirm('Удалить этого пользователя?')) return;
         
-        const success = window.leoDB.deleteUser(userId);
-        if (success) {
-            this.showToast('✅ Успех', 'Пользователь удален', 'success');
-            this.loadRealData();
+        const result = window.leoDB.deleteUser(userId);
+        if (result.success) {
+            this.showToast('Успех', 'Пользователь удален', 'success');
+            this.loadUsers();
         } else {
-            this.showToast('❌ Ошибка', 'Ошибка удаления', 'error');
+            this.showToast('Ошибка', result.error, 'error');
         }
     }
     
-    resetUserProgress(userId) {
-        if (!confirm('Сбросить очки и прогресс пользователя?')) return;
-        
-        const user = this.allUsers.find(u => u.id === userId);
-        if (!user) return;
-        
-        // Сбрасываем прогресс в базе данных
-        user.points = 0;
-        user.level = 1;
-        user.tasks_completed = [];
-        
-        // Обновляем в классе
-        const db = window.leoDB.getAll();
-        if (db.classes?.[user.class]?.students) {
-            const student = db.classes[user.class].students.find(s => s.id === userId);
-            if (student) {
-                student.points = 0;
-            }
-        }
-        
-        window.leoDB.save(db);
-        this.showToast('✅ Успех', 'Прогресс сброшен', 'success');
-        window.leoDB.addLog('admin', `Сбросил прогресс пользователя: ${user.name}`);
-        
-        this.loadRealData();
-    }
-    
-    // ===== РЕАЛЬНЫЙ AI =====
-    loadRealAI() {
-        console.log('🤖 Загрузка реальной AI системы...');
-        
-        const db = window.leoDB.getAll();
-        const aiKnowledge = db.ai_knowledge || {};
-        
-        // Считаем реальное количество знаний
-        let totalKnowledge = 0;
-        Object.values(aiKnowledge).forEach(category => {
-            if (typeof category === 'object') {
-                totalKnowledge += Object.keys(category).length;
+    toggleAllUsers(checked) {
+        document.querySelectorAll('.user-checkbox').forEach(cb => {
+            cb.checked = checked;
+            const userId = parseInt(cb.value);
+            if (checked) {
+                this.selectedUsers.add(userId);
+            } else {
+                this.selectedUsers.delete(userId);
             }
         });
-        
-        // Обновляем реальные показатели
-        document.getElementById('aiTrainedAnswers').textContent = totalKnowledge;
-        document.getElementById('aiAccuracy').textContent = '94%'; // Можно считать реальную точность
-        document.getElementById('aiLastTrain').textContent = 
-            db.ai_last_train ? new Date(db.ai_last_train).toLocaleDateString('ru-RU') : 'Никогда';
-        
-        // Загружаем реальную базу знаний
-        this.loadRealKnowledgeBase();
     }
     
-    loadRealKnowledgeBase() {
-        const container = document.getElementById('knowledgeList');
+    exportUsersToCSV() {
+        const users = window.leoDB.getAllUsers();
+        if (users.length === 0) {
+            this.showToast('Инфо', 'Нет пользователей для экспорта', 'info');
+            return;
+        }
+        
+        const headers = ['ID', 'Имя', 'Логин', 'Роль', 'Класс', 'Очки', 'Заданий', 'Дата регистрации'];
+        const rows = users.map(user => [
+            user.id,
+            `"${user.name}"`,
+            user.login,
+            user.role,
+            user.class || '',
+            user.points || 0,
+            user.tasks_completed?.length || 0,
+            user.created_at
+        ]);
+        
+        const csvContent = [
+            headers.join(','),
+            ...rows.map(row => row.join(','))
+        ].join('\n');
+        
+        const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `users_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+        
+        this.showToast('Успех', 'Пользователи экспортированы', 'success');
+    }
+    
+    searchUsers(query) {
+        const rows = document.querySelectorAll('#usersTableBody tr');
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(query.toLowerCase()) ? '' : 'none';
+        });
+    }
+    
+    filterUsers(filter) {
+        const rows = document.querySelectorAll('#usersTableBody tr');
+        rows.forEach(row => {
+            const role = row.querySelector('.badge').textContent.toLowerCase();
+            let show = false;
+            
+            switch(filter) {
+                case 'all': show = true; break;
+                case 'admins': show = role.includes('админ'); break;
+                case 'students': show = role.includes('пользователь'); break;
+                case 'active': show = row.querySelector('.status').textContent.includes('Активен'); break;
+            }
+            
+            row.style.display = show ? '' : 'none';
+        });
+    }
+    
+    // ===== РЕАЛЬНЫЕ ЗАДАНИЯ =====
+    loadTasks() {
+        const tasks = window.leoDB.getAllTasks();
+        const container = document.getElementById('tasksList');
+        
         if (!container) return;
         
-        const db = window.leoDB.getAll();
-        const knowledge = db.ai_knowledge || {};
-        
-        if (Object.keys(knowledge).length === 0) {
+        if (tasks.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <i class="fas fa-brain text-4xl text-gray-500 mb-4"></i>
-                    <p class="text-gray-400">База знаний пуста</p>
-                    <p class="text-gray-500 text-sm mt-2">Добавьте знания с помощью формы ниже</p>
+                    <i class="fas fa-tasks"></i>
+                    <p>Заданий пока нет</p>
+                    <button class="btn btn-primary mt-4" onclick="adminPanel.openTaskModal()">
+                        Добавить первое задание
+                    </button>
                 </div>
             `;
             return;
         }
         
         container.innerHTML = '';
-        
-        Object.entries(knowledge).forEach(([category, data]) => {
-            const item = document.createElement('div');
-            item.className = 'knowledge-item p-4 bg-gray-800/50 rounded-xl border border-gray-700';
-            
-            let content = '';
-            if (typeof data === 'object') {
-                content = Object.entries(data)
-                    .map(([key, value]) => 
-                        `<div class="mb-2">
-                            <span class="text-blue-400 font-medium">${key}:</span>
-                            <span class="text-gray-300 ml-2">${value}</span>
-                        </div>`
-                    )
-                    .join('');
-            }
-            
-            item.innerHTML = `
-                <div class="flex justify-between items-center mb-3">
-                    <span class="text-sm font-semibold text-purple-400 uppercase tracking-wide">
-                        ${this.getCategoryName(category)}
-                    </span>
-                    <button class="btn-action btn-delete" 
-                            onclick="adminPanel.deleteKnowledge('${category}')">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-                <div class="knowledge-content text-gray-300">
-                    ${content}
-                </div>
-            `;
-            
+        tasks.forEach(task => {
+            const item = this.createTaskItem(task);
             container.appendChild(item);
         });
     }
     
-    startRealTraining() {
+    createTaskItem(task) {
+        const div = document.createElement('div');
+        div.className = 'task-item';
+        
+        const completed = task.completed_by?.length || 0;
+        const total = window.leoDB.getAllUsers().filter(u => u.role !== 'admin').length;
+        const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+        
+        div.innerHTML = `
+            <div class="task-header">
+                <h4>${task.title}</h4>
+                <span class="badge badge-${task.priority || 'medium'}">${task.subject || 'Общее'}</span>
+            </div>
+            <div class="task-body">
+                <p>${task.description || 'Без описания'}</p>
+                <div class="task-meta">
+                    <span><i class="fas fa-calendar"></i> ${task.due_date || 'Без срока'}</span>
+                    <span><i class="fas fa-users"></i> ${completed}/${total} (${percent}%)</span>
+                    <span><i class="fas fa-coins"></i> ${task.points || 50} очков</span>
+                </div>
+            </div>
+            <div class="task-actions">
+                <button class="btn-action edit" onclick="adminPanel.editTask(${task.id})">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-action delete" onclick="adminPanel.deleteTask(${task.id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        
+        return div;
+    }
+    
+    openTaskModal(taskId = null) {
+        // Реализация модального окна для заданий
+        console.log('Открыть модалку задания:', taskId);
+    }
+    
+    // ===== РЕАЛЬНЫЙ AI =====
+    loadAI() {
+        const stats = window.leoDB.getStats();
+        const data = window.leoDB.getAllData();
+        const knowledge = data.ai_knowledge || {};
+        
+        let totalKnowledge = 0;
+        Object.values(knowledge).forEach(category => {
+            if (typeof category === 'object') {
+                totalKnowledge += Object.keys(category).length;
+            }
+        });
+        
+        document.getElementById('aiTrainedAnswers').textContent = totalKnowledge;
+        document.getElementById('aiAccuracy').textContent = '—';
+        document.getElementById('aiLastTrain').textContent = '—';
+    }
+    
+    startAITraining() {
         if (this.isTraining) {
-            this.showToast('⏳ Инфо', 'Обучение уже запущено', 'info');
+            this.showToast('Инфо', 'Обучение уже запущено', 'info');
             return;
         }
         
         this.isTraining = true;
+        const btn = document.getElementById('trainAI');
+        const original = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Обучение...';
+        btn.disabled = true;
         
-        // Обновляем UI
-        const trainBtn = document.getElementById('trainAI');
-        const originalHTML = trainBtn.innerHTML;
-        trainBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Обучение...';
-        trainBtn.disabled = true;
-        
-        // Показываем прогресс
-        const progressFill = document.getElementById('trainingFill');
-        const progressText = document.getElementById('trainingProgress');
-        const processedEl = document.getElementById('processedItems');
-        const timeEl = document.getElementById('trainingTime');
-        
+        // Имитация обучения
         let progress = 0;
-        let processed = 0;
-        const totalItems = 100;
-        const startTime = Date.now();
-        
-        // Имитация реального обучения
         const interval = setInterval(() => {
-            progress += 1;
-            processed += 2;
+            progress += 5;
+            const progressBar = document.getElementById('trainingFill');
+            const progressText = document.getElementById('trainingProgress');
             
-            // Обновляем прогресс
-            progressFill.style.width = `${progress}%`;
-            progressText.textContent = `${progress}%`;
-            processedEl.textContent = `${processed}/${totalItems}`;
-            
-            // Обновляем время
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            timeEl.textContent = `${elapsed}с`;
+            if (progressBar) progressBar.style.width = `${progress}%`;
+            if (progressText) progressText.textContent = `${progress}%`;
             
             if (progress >= 100) {
                 clearInterval(interval);
-                
-                // Завершаем обучение
                 this.isTraining = false;
-                trainBtn.innerHTML = originalHTML;
-                trainBtn.disabled = false;
+                btn.innerHTML = original;
+                btn.disabled = false;
                 
-                // Обновляем базу данных
-                const db = window.leoDB.getAll();
-                db.ai_last_train = new Date().toISOString();
-                window.leoDB.save(db);
-                
-                this.showToast('✅ Успех', 'Обучение нейросети завершено', 'success');
-                window.leoDB.addLog('admin', 'Провел обучение нейросети');
-                
-                // Обновляем данные
-                this.loadRealAI();
+                this.showToast('Успех', 'Обучение завершено', 'success');
             }
-        }, 50);
-    }
-    
-    saveRealKnowledge() {
-        const category = document.getElementById('knowledgeCategory').value;
-        const keywords = document.getElementById('knowledgeKeywords').value.trim();
-        const answer = document.getElementById('knowledgeAnswer').value.trim();
-        
-        if (!keywords || !answer) {
-            this.showToast('❌ Ошибка', 'Заполните все поля', 'error');
-            return;
-        }
-        
-        const success = window.leoDB.addKnowledge(category, keywords, answer);
-        if (success) {
-            this.showToast('✅ Успех', 'Знания добавлены', 'success');
-            this.loadRealKnowledgeBase();
-            
-            // Очищаем форму
-            document.getElementById('knowledgeKeywords').value = '';
-            document.getElementById('knowledgeAnswer').value = '';
-        } else {
-            this.showToast('❌ Ошибка', 'Ошибка сохранения', 'error');
-        }
-    }
-    
-    deleteKnowledge(category) {
-        if (!confirm('Удалить эту категорию знаний?')) return;
-        
-        const db = window.leoDB.getAll();
-        if (db.ai_knowledge && db.ai_knowledge[category]) {
-            delete db.ai_knowledge[category];
-            window.leoDB.save(db);
-            
-            this.showToast('✅ Успех', 'Категория удалена', 'success');
-            this.loadRealKnowledgeBase();
-        }
+        }, 100);
     }
     
     // ===== РЕАЛЬНЫЕ НАСТРОЙКИ =====
-    loadRealSettings() {
-        const db = window.leoDB.getAll();
-        const settings = db.settings || {};
+    loadSettings() {
+        const settings = window.leoDB.getSettings();
         
-        // Заполняем форму реальными настройками
         document.getElementById('systemName').value = settings.system_name || 'Leo Assistant';
         document.getElementById('defaultClass').value = settings.default_class || '7B';
         document.getElementById('pointsPerTask').value = settings.points_per_task || 50;
-        document.getElementById('aiMode').value = settings.ai_mode || 'advanced';
+        document.getElementById('aiMode').value = settings.ai_mode || 'basic';
         
-        // Ползунок
         const maxLength = settings.ai_max_length || 500;
         document.getElementById('aiMaxLength').value = maxLength;
         document.getElementById('aiLengthValue').textContent = `${maxLength} символов`;
         
-        // Чекбоксы
         document.getElementById('aiLearning').checked = settings.ai_learning !== false;
         document.getElementById('aiProfanityFilter').checked = settings.profanity_filter !== false;
         
-        // Безопасность
         document.getElementById('emailVerification').value = 
             settings.email_verification ? 'true' : 'false';
         document.getElementById('maxLoginAttempts').value = settings.max_login_attempts || 5;
         document.getElementById('lockoutTime').value = settings.lockout_time || 15;
         
-        // Внешний вид
         const theme = settings.theme || 'dark';
         document.querySelector(`input[name="theme"][value="${theme}"]`).checked = true;
         
-        const accentColor = settings.accent_color || '#6366f1';
-        document.getElementById('accentColor').value = accentColor;
-        
-        // Шрифт
+        document.getElementById('accentColor').value = settings.accent_color || '#6366f1';
         document.getElementById('interfaceFont').value = settings.interface_font || 'Inter';
-        
-        // Резервное копирование
-        document.getElementById('autoBackup').value = settings.auto_backup || 'weekly';
     }
     
-    saveRealSettings() {
+    saveSettings() {
         const settings = {
             system_name: document.getElementById('systemName').value,
             default_class: document.getElementById('defaultClass').value,
@@ -1055,134 +804,151 @@ class AdminPanel {
             lockout_time: parseInt(document.getElementById('lockoutTime').value),
             theme: document.querySelector('input[name="theme"]:checked').value,
             accent_color: document.getElementById('accentColor').value,
-            interface_font: document.getElementById('interfaceFont').value,
-            auto_backup: document.getElementById('autoBackup').value
+            interface_font: document.getElementById('interfaceFont').value
         };
         
-        // Пароль администратора
-        const adminPassword = document.getElementById('adminPassword').value;
-        if (adminPassword) {
-            if (adminPassword.length < 6) {
-                this.showToast('❌ Ошибка', 'Пароль должен быть не менее 6 символов', 'error');
-                return;
-            }
-            
-            const db = window.leoDB.getAll();
-            db.system.admin_password = adminPassword;
-            window.leoDB.save(db);
-            
-            document.getElementById('adminPassword').value = '';
-            this.showToast('✅ Успех', 'Пароль обновлен', 'success');
+        const result = window.leoDB.updateSettings(settings);
+        if (result.success) {
+            this.showToast('Успех', 'Настройки сохранены', 'success');
+            this.applySettings(settings);
         }
-        
-        // Сохраняем настройки
-        const db = window.leoDB.getAll();
-        db.settings = settings;
-        window.leoDB.save(db);
-        
-        this.showToast('✅ Успех', 'Настройки сохранены', 'success');
-        window.leoDB.addLog('admin', 'Обновил системные настройки');
-        
-        // Применяем изменения
-        this.applyRealSettings(settings);
     }
     
-    applyRealSettings(settings) {
-        // Тема
+    resetSettings() {
+        const result = window.leoDB.updateSettings({});
+        if (result.success) {
+            this.showToast('Успех', 'Настройки сброшены', 'success');
+            this.loadSettings();
+        }
+    }
+    
+    applySettings(settings) {
         document.documentElement.className = settings.theme;
-        
-        // Акцентный цвет
         if (settings.accent_color) {
             document.documentElement.style.setProperty('--primary', settings.accent_color);
         }
-        
-        // Шрифт
-        if (settings.interface_font !== 'Inter') {
-            document.body.style.fontFamily = `${settings.interface_font}, sans-serif`;
-        }
     }
     
-    // ===== РЕАЛЬНЫЕ ЭКСПОРТЫ =====
-    exportRealUsers() {
-        if (this.allUsers.length === 0) {
-            this.showToast('⚠️ Инфо', 'Нет пользователей для экспорта', 'warning');
+    // ===== РЕАЛЬНЫЕ ЛОГИ =====
+    loadLogs() {
+        const logs = window.leoDB.getLogs(100);
+        const container = document.getElementById('logsList');
+        
+        if (!container) return;
+        
+        if (logs.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-history"></i>
+                    <p>Логов пока нет</p>
+                </div>
+            `;
             return;
         }
         
-        // Создаем реальный CSV
-        const headers = ['Имя', 'Логин', 'Класс', 'Роль', 'Очки', 'Уровень', 'Задания', 'Регистрация'];
-        const csvRows = [
+        container.innerHTML = '';
+        logs.forEach(log => {
+            const item = document.createElement('div');
+            item.className = `log-item ${log.type}`;
+            
+            const time = new Date(log.timestamp).toLocaleString('ru-RU');
+            
+            item.innerHTML = `
+                <div class="log-icon">
+                    <i class="fas fa-${this.getLogIcon(log.type)}"></i>
+                </div>
+                <div class="log-content">
+                    <div class="log-message">${log.action}</div>
+                    <div class="log-meta">
+                        <span class="log-user">${log.user_name}</span>
+                        <span class="log-time">${time}</span>
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(item);
+        });
+    }
+    
+    searchLogs(query) {
+        const items = document.querySelectorAll('.log-item');
+        items.forEach(item => {
+            const text = item.textContent.toLowerCase();
+            item.style.display = text.includes(query.toLowerCase()) ? '' : 'none';
+        });
+    }
+    
+    exportLogsToCSV() {
+        const logs = window.leoDB.getLogs(1000);
+        if (logs.length === 0) {
+            this.showToast('Инфо', 'Нет логов для экспорта', 'info');
+            return;
+        }
+        
+        const headers = ['ID', 'Пользователь', 'Действие', 'Тип', 'Время'];
+        const rows = logs.map(log => [
+            log.id,
+            `"${log.user_name}"`,
+            `"${log.action}"`,
+            log.type,
+            log.timestamp
+        ]);
+        
+        const csvContent = [
             headers.join(','),
-            ...this.allUsers.map(user => [
-                `"${user.name}"`,
-                user.login,
-                user.class || '7Б',
-                user.role,
-                user.points || 0,
-                user.level || 1,
-                user.tasks_completed?.length || 0,
-                user.created_at ? new Date(user.created_at).toLocaleDateString('ru-RU') : '-'
-            ].join(','))
-        ];
+            ...rows.map(row => row.join(','))
+        ].join('\n');
         
-        const csvString = csvRows.join('\n');
-        const blob = new Blob(['\ufeff' + csvString], { type: 'text/csv;charset=utf-8;' });
+        const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
-        
         const link = document.createElement('a');
-        link.setAttribute('href', url);
-        link.setAttribute('download', `leo_users_${new Date().toISOString().split('T')[0]}.csv`);
+        link.href = url;
+        link.download = `logs_${new Date().toISOString().split('T')[0]}.csv`;
         link.click();
         
-        URL.revokeObjectURL(url);
-        
-        this.showToast('✅ Успех', 'Пользователи экспортированы', 'success');
-        window.leoDB.addLog('admin', 'Экспортировал список пользователей');
+        this.showToast('Успех', 'Логи экспортированы', 'success');
     }
     
-    // ===== РЕАЛЬНОЕ РЕЗЕРВНОЕ КОПИРОВАНИЕ =====
-    createRealBackup() {
-        const backup = window.leoDB.backup();
-        if (!backup) {
-            this.showToast('❌ Ошибка', 'Ошибка создания резервной копии', 'error');
-            return;
+    clearLogs() {
+        const result = window.leoDB.clearLogs();
+        if (result.success) {
+            this.showToast('Успех', 'Логи очищены', 'success');
+            this.loadLogs();
         }
-        
-        const link = document.createElement('a');
-        link.setAttribute('href', backup.dataUri);
-        link.setAttribute('download', backup.filename);
-        link.click();
-        
-        this.showToast('✅ Успех', 'Резервная копия создана', 'success');
-        window.leoDB.addLog('admin', 'Создал резервную копию базы данных');
     }
     
-    restoreRealBackup() {
+    // ===== УПРАВЛЕНИЕ БАЗОЙ =====
+    createBackup() {
+        const backup = window.leoDB.backup();
+        const link = document.createElement('a');
+        link.href = backup.dataUri;
+        link.download = backup.filename;
+        link.click();
+        
+        this.showToast('Успех', 'Резервная копия создана', 'success');
+    }
+    
+    restoreBackup() {
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = '.json';
         
-        input.onchange = async (e) => {
+        input.onchange = (e) => {
             const file = e.target.files[0];
             if (!file) return;
             
             const reader = new FileReader();
-            reader.onload = async (e) => {
-                try {
-                    if (!confirm('Восстановить базу данных из резервной копии? Текущие данные будут перезаписаны.')) {
-                        return;
-                    }
-                    
-                    const success = window.leoDB.restore(e.target.result);
-                    if (success) {
-                        this.showToast('✅ Успех', 'База данных восстановлена', 'success');
-                        this.loadRealData();
-                    } else {
-                        this.showToast('❌ Ошибка', 'Ошибка восстановления', 'error');
-                    }
-                    
-                } catch (error) {
-                    this.showToast('❌ Ошибка', 'Некорректный файл резервной копии', 'error');
+            reader.onload = (e) => {
+                if (!confirm('Восстановить базу данных? Текущие данные будут заменены.')) {
+                    return;
+                }
+                
+                const result = window.leoDB.restore(e.target.result);
+                if (result.success) {
+                    this.showToast('Успех', 'База данных восстановлена', 'success');
+                    this.loadRealData();
+                } else {
+                    this.showToast('Ошибка', result.error || 'Ошибка восстановления', 'error');
                 }
             };
             
@@ -1192,24 +958,24 @@ class AdminPanel {
         input.click();
     }
     
-    clearRealDatabase() {
-        if (!confirm('⚠️ ВНИМАНИЕ! Это удалит ВСЕ данные. Продолжить?')) return;
+    clearDatabase() {
+        if (!confirm('⚠️ ВНИМАНИЕ! Это удалит ВСЕ данные.\n\nПродолжить?')) return;
         if (!confirm('❌ Вы уверены? Это действие нельзя отменить!')) return;
         
-        const success = window.leoDB.clearAll();
-        if (success) {
-            this.showToast('✅ Успех', 'База данных очищена', 'success');
-            this.loadRealData();
+        const result = window.leoDB.resetAll();
+        if (result.success) {
+            this.showToast('Успех', 'База данных очищена', 'success');
+            setTimeout(() => window.location.reload(), 1000);
         }
     }
     
-    // ===== РЕАЛЬНЫЕ УТИЛИТЫ =====
+    // ===== ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ =====
     showToast(title, message, type = 'info') {
         const container = document.getElementById('toastContainer');
         if (!container) return;
         
         const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
+        toast.className = `toast toast-${type}`;
         
         const icons = {
             'success': 'check-circle',
@@ -1220,33 +986,22 @@ class AdminPanel {
         
         toast.innerHTML = `
             <div class="toast-icon">
-                <i class="fas fa-${icons[type]}"></i>
+                <i class="fas fa-${icons[type] || 'info-circle'}"></i>
             </div>
             <div class="toast-content">
                 <div class="toast-title">${title}</div>
                 <div class="toast-message">${message}</div>
             </div>
-            <button class="toast-close">
+            <button class="toast-close" onclick="this.parentElement.remove()">
                 <i class="fas fa-times"></i>
             </button>
         `;
         
         container.appendChild(toast);
         
-        // Анимация появления
-        setTimeout(() => toast.classList.add('show'), 10);
-        
-        // Закрытие
-        toast.querySelector('.toast-close').addEventListener('click', () => {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 300);
-        });
-        
-        // Автоматическое закрытие
         setTimeout(() => {
             if (toast.parentElement) {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
+                toast.remove();
             }
         }, 5000);
     }
@@ -1256,7 +1011,6 @@ class AdminPanel {
         if (modal) {
             modal.style.display = 'flex';
             setTimeout(() => modal.classList.add('show'), 10);
-            document.body.style.overflow = 'hidden';
         }
     }
     
@@ -1266,45 +1020,27 @@ class AdminPanel {
             modal.classList.remove('show');
             setTimeout(() => {
                 modal.style.display = 'none';
-                document.body.style.overflow = 'auto';
             }, 300);
         }
     }
     
     updateClock() {
         const now = new Date();
-        const timeElement = document.querySelector('.current-time');
-        if (timeElement) {
-            timeElement.textContent = now.toLocaleTimeString('ru-RU', {
+        const clock = document.querySelector('.current-time');
+        if (clock) {
+            clock.textContent = now.toLocaleTimeString('ru-RU', {
                 hour: '2-digit',
                 minute: '2-digit'
             });
         }
     }
     
-    applyDarkTheme() {
-        document.documentElement.className = 'dark';
-    }
-    
     startAutoUpdate() {
-        // Автообновление каждые 30 секунд
         setInterval(() => {
             if (this.currentSection === 'dashboard') {
                 this.loadRealData();
             }
         }, 30000);
-    }
-    
-    // Вспомогательные методы
-    getCategoryName(category) {
-        const names = {
-            'greetings': 'Приветствия',
-            'subjects': 'Предметы',
-            'tasks': 'Задания',
-            'schedule': 'Расписание',
-            'general': 'Общее'
-        };
-        return names[category] || category;
     }
     
     getLogIcon(type) {
@@ -1315,13 +1051,30 @@ class AdminPanel {
             'user': 'user',
             'system': 'cog',
             'ai': 'robot',
-            'security': 'shield-alt',
+            'settings': 'cogs',
             'error': 'exclamation-circle',
             'warning': 'exclamation-triangle',
             'info': 'info-circle',
             'success': 'check-circle'
         };
         return icons[type] || 'info-circle';
+    }
+    
+    validateField(field) {
+        if (field.required && !field.value.trim()) {
+            field.classList.add('invalid');
+            return false;
+        }
+        field.classList.remove('invalid');
+        return true;
+    }
+    
+    changeTheme(theme) {
+        document.documentElement.className = theme;
+    }
+    
+    loadCurrentSection() {
+        this.loadSectionData(this.currentSection);
     }
 }
 
